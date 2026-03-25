@@ -155,7 +155,7 @@ $page_title = htmlspecialchars($item['name']);
             ?>
             <tr>
                 <th><?php echo htmlspecialchars($field_def['label']); ?></th>
-                <td><?php echo $display !== '' ? htmlspecialchars($display) : '<em>—</em>'; ?></td>
+                <td><?php if ($display !== ''): echo htmlspecialchars($display); else: ?><em>&#8212;</em><?php endif; ?></td>
             </tr>
             <?php endforeach; ?>
         </table>

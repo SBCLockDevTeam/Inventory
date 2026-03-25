@@ -88,11 +88,15 @@ function logActivity(string $message): void
  */
 function generatePublicCode(Database $db): string
 {
-    do {
-        $code = strtoupper(bin2hex(random_bytes(5)));
+    $max_attempts = 100;
+    for ($attempt = 0; $attempt < $max_attempts; $attempt++) {
+        $code   = strtoupper(bin2hex(random_bytes(5)));
         $exists = queryOne($db, 'SELECT public_code FROM items WHERE public_code = ?', [$code]);
-    } while ($exists);
-    return $code;
+        if (!$exists) {
+            return $code;
+        }
+    }
+    throw new RuntimeException('Unable to generate a unique public code after ' . $max_attempts . ' attempts');
 }
 
 // ============================================================

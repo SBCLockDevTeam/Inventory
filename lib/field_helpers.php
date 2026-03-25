@@ -166,9 +166,15 @@ function getFieldDisplayValue(array $field_value): string
         case 'textarea':
             return $field_value['value_text'] ?? '';
         case 'number':
-            return $field_value['value_number'] !== null
-                ? rtrim(rtrim((string)$field_value['value_number'], '0'), '.')
-                : '';
+            if ($field_value['value_number'] === null) {
+                return '';
+            }
+            $n = (float)$field_value['value_number'];
+            // Format: strip trailing zeros only when there is a decimal part
+            if (floor($n) === $n) {
+                return number_format($n, 0, '.', '');
+            }
+            return rtrim(number_format($n, 4, '.', ''), '0');
         case 'date':
             return $field_value['value_date'] ?? '';
         case 'checkbox':
