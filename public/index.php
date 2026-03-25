@@ -1,45 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SBC Inventory Dashboard</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
 <?php
-// Include the header template
-include __DIR__ . '/../templates/common/header.php';
+// Dashboard entry page for /qr/
+// Uses shared templates and pulls real stats from the database.
 
-// Include the menu template
-include __DIR__ . '/../templates/common/menu.php';
+declare(strict_types=1);
 
-// Include error division template
-include __DIR__ . '/../templates/common/error_division.php';
+require_once __DIR__ . '/../lib/bootstrap.php';
 
-// Sample statistics
-$statistics = [
-    'Total Items' => 150,
-    'Available Items' => 120,
-    'Total Users' => 30,
+$stats = [
+    'Total Items' => 0,
+    'Containers' => 0,
+    'Brands' => 0,
 ];
+
+try {
+    $db = db();
+
+    // Total items
+    $db->query('SELECT COUNT(*) AS c FROM items');
+    $row = $db->queryOne();
+    $stats['Total Items'] = (int)($row['c'] ?? 0);
+
+    // Containers
+    $db->query('SELECT COUNT(*) AS c FROM items WHERE is_container = 1');
+    $row = $db->queryOne();
+    $stats['Containers'] = (int)($row['c'] ?? 0);
+
+    // Brands
+    $db->query('SELECT COUNT(*) AS c FROM brands');
+    $row = $db->queryOne();
+    $stats['Brands'] = (int)($row['c'] ?? 0);
+} catch (Throwable $e) {
+    // Don't expose internals; show a friendly message in the error division.
+    add_error('error', 'Dashboard failed to load stats. Verify DB connection and run /qr/install/setup.php.');
+    log_exception($e, 'dashboard_stats');
+}
+
+include __DIR__ . '/../templates/common/header.php';
+include __DIR__ . '/../templates/common/menu.php';
+include __DIR__ . '/../templates/common/error_division.php';
 ?>
 
-    <main class="container">
-        <h2>Dashboard Statistics</h2>
-        <div class="statistics">
-            <?php foreach ($statistics as $key => $value): ?>
-                <div class="stat-card">
-                    <div class="stat-label"><?php echo htmlspecialchars($key); ?></div>
-                    <div class="stat-value"><?php echo htmlspecialchars($value); ?></div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </main>
+<main class="container">
+    <h2>Dashboard Statistics</h2>
+    <div class="statistics">
+        <?php foreach ($stats as $key => $value): ?>
+            <div class="stat-card">
+                <div class="stat-label"><?php echo htmlspecialchars((string)$key, ENT_QUOTES, 'UTF-8'); ?></div>
+                <div class="stat-value"><?php echo htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</main>
 
 <?php
-// Include the footer template
 include __DIR__ . '/../templates/common/footer.php';
-?>
-</body>
-</html>
