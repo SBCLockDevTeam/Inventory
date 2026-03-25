@@ -1,0 +1,13 @@
+# Secrets - never commit real credentials
+config/secrets.php
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Uploaded files (server only)
+assets/uploads/
