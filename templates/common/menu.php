@@ -1,19 +1,8 @@
-<?php
-
-// PHP menu template with navigation links
-
-echo '<nav>';
-
-echo '<ul>';
-
-echo '<li><a href="home.php">Home</a></li>';
-
-echo '<li><a href="inventory.php">Inventory</a></li>';
-
-echo '<li><a href="statistics.php">Statistics</a></li>';
-
-echo '<li><a href="admin.php">Admin</a></li>';
-
-echo '</ul>';
-
-echo '</nav>';
+<nav class="main-nav">
+    <ul class="nav-list">
+        <li><a href="/qr/public/index.php" class="nav-link">Home</a></li>
+        <li><a href="/qr/public/inventory.php" class="nav-link">Inventory</a></li>
+        <li><a href="/qr/public/statistics.php" class="nav-link">Statistics</a></li>
+        <li><a href="/qr/public/admin.php" class="nav-link">Admin</a></li>
+    </ul>
+</nav>

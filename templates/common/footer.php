@@ -1,8 +1,6 @@
 <?php
 /**
  * Footer Template
- * 
- * Application footer with copyright, version, links, and feedback
  */
 
 $config = include __DIR__ . '/../../config/settings.php';
@@ -38,7 +36,7 @@ $currentYear = date('Y');
     <!-- Feedback Modal -->
     <div id="feedback-modal" class="modal hidden">
         <div class="modal-content">
-            <span class="close-button" onclick="closeFeedbackForm()">&times;</span>
+            <button class="close-button" onclick="closeFeedbackForm()">&times;</button>
             <h2>Send Feedback</h2>
             <form id="feedback-form" method="POST" action="<?php echo $config['root_url']; ?>api/feedback.php">
                 <input type="hidden" name="user_ip" value="<?php echo htmlspecialchars($_SERVER['REMOTE_ADDR']); ?>">
@@ -61,12 +59,25 @@ $currentYear = date('Y');
                 <input type="text" id="feedback-subject" name="subject" required>
                 
                 <label for="feedback-message">Message:</label>
-                <textarea id="feedback-message" name="message" rows="5" required></textarea>
+                <textarea id="feedback-message" name="message" required></textarea>
                 
                 <button type="submit" class="btn-primary">Submit</button>
             </form>
         </div>
     </div>
+
+    <script>
+        function openFeedbackForm(e) {
+            e.preventDefault();
+            document.getElementById('feedback-modal').classList.remove('hidden');
+            document.getElementById('feedback-modal').classList.add('show');
+        }
+        
+        function closeFeedbackForm() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            document.getElementById('feedback-modal').classList.remove('show');
+        }
+    </script>
 
 </body>
 </html>

@@ -1,6 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBC Inventory Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
 <?php
-// public/index.php
-
 // Include the header template
 include __DIR__ . '/../templates/common/header.php';
 
@@ -10,18 +17,16 @@ include __DIR__ . '/../templates/common/menu.php';
 // Include error division template
 include __DIR__ . '/../templates/common/error_division.php';
 
-// Get current date and time
-$currentDateTime = date("Y-m-d H:i:s");
-
-// Sample statistics (replace with dynamic data as needed)
+// Sample statistics
 $statistics = [
     'Total Items' => 150,
     'Available Items' => 120,
     'Total Users' => 30,
 ];
-
 ?>
+
     <main class="container">
+        <h2>Dashboard Statistics</h2>
         <div class="statistics">
             <?php foreach ($statistics as $key => $value): ?>
                 <div class="stat-card">
@@ -36,3 +41,5 @@ $statistics = [
 // Include the footer template
 include __DIR__ . '/../templates/common/footer.php';
 ?>
+</body>
+</html>
