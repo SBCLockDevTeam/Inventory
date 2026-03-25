@@ -7,14 +7,16 @@
 require_once __DIR__ . '/../../lib/bootstrap.php';
 require_once __DIR__ . '/../../lib/item_helpers.php';
 
+$db = db();
+
 $errors = [];
 $success = '';
-$item_id = $_GET['id'] ?? '';  
+$item_id = trim($_GET['id'] ?? '');
 
 // Get item data
 $item = null;
 if ($item_id) {
-    $item = queryOne($db, "SELECT * FROM items WHERE item_id = ?", [$item_id]);
+    $item = queryOne($db, "SELECT * FROM items WHERE public_code = ?", [$item_id]);
     
     if (!$item) {
         $errors[] = 'Item not found';
@@ -31,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $item && !isRootItem($db, $item_id)
         $errors[] = 'Please select a new parent location';
     } else {
         // Check if new parent exists and is a container
-        $new_parent = queryOne($db, "SELECT * FROM items WHERE item_id = ?", [$new_parent_id]);
+        $new_parent = queryOne($db, "SELECT * FROM items WHERE public_code = ?", [$new_parent_id]);
         
         if (!$new_parent) {
             $errors[] = 'Selected parent location does not exist';
@@ -42,11 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $item && !isRootItem($db, $item_id)
         } else {
             try {
                 execute($db,
-                    "UPDATE items SET location_item_id = ?, updated_at = NOW() WHERE item_id = ?",
+                    "UPDATE items SET location_item_id = ?, updated_at = NOW() WHERE public_code = ?",
                     [$new_parent_id, $item_id]
                 );
                 
-                logActivity("Item moved: {$item['item_name']} (ID: {$item_id}) to {$new_parent['item_name']} (ID: {$new_parent_id})");
+                logActivity("Item moved: {$item['name']} (Code: {$item_id}) to {$new_parent['name']} (Code: {$new_parent_id})");
                 
                 // Redirect to item view with success message
                 header("Location: /public/items/view.php?id={$item_id}&moved=1");
@@ -60,31 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $item && !isRootItem($db, $item_id)
 }
 
 // Get all potential parent items (containers) excluding the item itself and its descendants
-$all_containers = queryAll($db, "SELECT item_id, item_name, location_item_id FROM items WHERE is_container = 1 ORDER BY item_name");
+$all_containers = queryAll($db, "SELECT public_code, name, location_item_id FROM items WHERE is_container = 1 ORDER BY name");
 
 // Filter out the item itself and its descendants
 $descendants = $item ? getDescendants($db, $item_id) : [];
 $descendants[] = $item_id; // Add the item itself
 
 $available_containers = array_filter($all_containers, function($container) use ($descendants) {
-    return !in_array($container['item_id'], $descendants);
+    return !in_array($container['public_code'], $descendants);
 });
 
 $page_title = 'Move Item';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($page_title); ?> - QR Inventory</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/responsive.css">
-</head>
-<body>
-    <?php include __DIR__ . '/../../templates/common/header.php'; ?>
-    <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
+<?php include __DIR__ . '/../../templates/common/header.php'; ?>
+<?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     
     <?php if (!empty($errors)): ?>
         <div class="error-banner">
@@ -100,13 +91,13 @@ $page_title = 'Move Item';
         <?php if ($item && !isRootItem($db, $item_id)): ?>
             <div class="item-info">
                 <h2>Moving Item:</h2>
-                <p><strong><?php echo htmlspecialchars($item['item_name']); ?></strong></p>
-                <p><?php echo htmlspecialchars($item['item_description']); ?></p>
+                <p><strong><?php echo htmlspecialchars($item['name']); ?></strong></p>
+                <p><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
                 
                 <?php
-                $current_parent = queryOne($db, "SELECT item_name FROM items WHERE item_id = ?", [$item['location_item_id']]);
+                $current_parent = queryOne($db, "SELECT name FROM items WHERE public_code = ?", [$item['location_item_id']]);
                 ?>
-                <p><em>Current location: <?php echo htmlspecialchars($current_parent['item_name'] ?? 'Unknown'); ?></em></p>
+                <p><em>Current location: <?php echo htmlspecialchars($current_parent['name'] ?? 'Unknown'); ?></em></p>
             </div>
             
             <form method="POST" class="move-form">
@@ -118,9 +109,9 @@ $page_title = 'Move Item';
                         <select id="location_item_id" name="location_item_id" required>
                             <option value="">-- Select New Location --</option>
                             <?php foreach ($available_containers as $container): ?>
-                                <option value="<?php echo htmlspecialchars($container['item_id']); ?>" 
-                                        <?php echo $container['item_id'] === $item['location_item_id'] ? 'selected' : ''; ?> >
-                                    <?php echo htmlspecialchars($container['item_name']); ?>
+                                <option value="<?php echo htmlspecialchars($container['public_code']); ?>" 
+                                        <?php echo $container['public_code'] === $item['location_item_id'] ? 'selected' : ''; ?> >
+                                    <?php echo htmlspecialchars($container['name']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
