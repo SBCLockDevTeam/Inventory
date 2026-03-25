@@ -1,0 +1,15 @@
+/* Styles for the Inventory application */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header, footer {
+    background-color: #f8f9fa;
+    padding: 10px;
+}
+
+.menu {
+    margin: 10px 0;
+}
