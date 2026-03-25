@@ -1,18 +1,18 @@
 -- Brands
-INSERT INTO brands (id, name) VALUES
-(1, 'Brand A'),
-(2, 'Brand B'),
-(3, 'Brand C');
+INSERT INTO brands (name, description, is_default) VALUES
+('Brand A', 'First brand', 0),
+('Brand B', 'Second brand', 0),
+('Brand C', 'Third brand', 1);
 
--- Items
-INSERT INTO items (id, name, brand_id, price) VALUES
-(1, 'Item 1', 1, 9.99),
-(2, 'Item 2', 1, 19.99),
-(3, 'Item 3', 2, 29.99),
-(4, 'Item 4', 3, 39.99);
+-- Root items (containers)
+INSERT INTO items (public_code, brand_id, name, is_container, location_item_id) VALUES
+('ROOT0001', 1, 'Warehouse A', 1, 'ROOT0001'),
+('ROOT0002', 2, 'Warehouse B', 1, 'ROOT0002'),
+('ROOT0003', 3, 'Warehouse C', 1, 'ROOT0003');
 
--- Sample Data
-INSERT INTO sample_data (item_id, quantity, created_at) VALUES
-(1, 100, '2026-03-25 05:14:18'),
-(2, 150, '2026-03-25 05:14:18'),
-(3, 200, '2026-03-25 05:14:18');
+-- Sample items in containers
+INSERT INTO items (public_code, brand_id, name, description, is_container, location_item_id) VALUES
+('ITEM0001', 1, 'Item 1', 'Sample item 1', 0, 'ROOT0001'),
+('ITEM0002', 1, 'Item 2', 'Sample item 2', 0, 'ROOT0001'),
+('ITEM0003', 2, 'Item 3', 'Sample item 3', 0, 'ROOT0002'),
+('ITEM0004', 3, 'Item 4', 'Sample item 4', 0, 'ROOT0003');

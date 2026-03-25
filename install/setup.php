@@ -1,6 +1,7 @@
 <?php
-require '../lib/database.php';
-require '../lib/logger.php';
+require __DIR__ . '/../config/secrets.php';
+require __DIR__ . '/../lib/database.php';
+require __DIR__ . '/../lib/logger.php';
 
 $db = new Database();
 $logger = new Logger('../logs/activity.log');
@@ -11,6 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'init_db') {
         try {
             $schema = file_get_contents('../db/schema.sql');
+            
+            // Remove SQL comments
+            $schema = preg_replace('/--.*$/m', '', $schema);
+            $schema = preg_replace('/\/\*.*?\*\//s', '', $schema);
+            
+            // Split statements properly
             $statements = array_filter(array_map('trim', explode(';', $schema)));
             
             foreach ($statements as $statement) {
@@ -20,34 +27,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            $message = 'Database initialized successfully!';
-            $logger->log('Database initialized', 'INFO', []);
+            $logger->log('Database initialization', 'INFO', ['status' => 'success']);
+            $message = '<div class="alert alert-success">Database initialized successfully!</div>';
         } catch (Exception $e) {
-            $error = 'Error initializing database: ' . $e->getMessage();
-            $logger->log('Database initialization failed', 'ERROR', ['error' => $e->getMessage()]);
+            $logger->log('Database initialization', 'ERROR', ['error' => $e->getMessage()]);
+            $message = '<div class="alert alert-danger">Error initializing database: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     } elseif ($action === 'seed_db') {
         try {
-            $seed = file_get_contents('../db/seed.sql');
-            $statements = array_filter(array_map('trim', explode(';', $seed)));
-            
-            foreach ($statements as $statement) {
-                if (!empty($statement)) {
-                    $db->query($statement);
-                    $db->execute();
+            $seedFile = '../db/seed.sql';
+            if (file_exists($seedFile)) {
+                $seed = file_get_contents($seedFile);
+                
+                // Remove SQL comments
+                $seed = preg_replace('/--.*$/m', '', $seed);
+                $seed = preg_replace('/\/\*.*?\*\//s', '', $seed);
+                
+                $statements = array_filter(array_map('trim', explode(';', $seed)));
+                
+                foreach ($statements as $statement) {
+                    if (!empty($statement)) {
+                        $db->query($statement);
+                        $db->execute();
+                    }
                 }
+                
+                $logger->log('Database seeding', 'INFO', ['status' => 'success']);
+                $message = '<div class="alert alert-success">Sample data loaded successfully!</div>';
+            } else {
+                $message = '<div class="alert alert-warning">No seed file found</div>';
             }
-            
-            $message = 'Sample data loaded successfully!';
-            $logger->log('Sample data loaded', 'INFO', []);
         } catch (Exception $e) {
-            $error = 'Error loading sample data: ' . $e->getMessage();
-            $logger->log('Sample data load failed', 'ERROR', ['error' => $e->getMessage()]);
+            $logger->log('Database seeding', 'ERROR', ['error' => $e->getMessage()]);
+            $message = '<div class="alert alert-danger">Error loading sample data: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,18 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <section>
             <h2>Installation Steps</h2>
             
-            <?php if (!empty($message)): ?>
-                <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                    <?php echo htmlspecialchars($message); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($error)): ?>
-                <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
+            <?php if (isset($message)) echo $message; ?>
+            
             <form method="POST">
                 <fieldset>
                     <legend>Database Setup</legend>

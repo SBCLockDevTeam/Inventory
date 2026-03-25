@@ -13,7 +13,7 @@ class Logger {
 
     public function log($action, $level, $data) {
         $timestamp = date('Y-m-d H:i:s');
-        $logEntry = "["] . $timestamp . ["] [$level] $action: " . json_encode($data) . "\n";
+        $logEntry = "[" . $timestamp . "] [" . $level . "] " . $action . ": " . json_encode($data) . "\n";
         file_put_contents($this->logFile, $logEntry, FILE_APPEND);
     }
 }
