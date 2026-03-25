@@ -1,40 +1,32 @@
 <?php
-require '../lib/database.php';
-require '../lib/logger.php';
+declare(strict_types=1);
 
 header('Content-Type: application/json');
+require_once __DIR__ . '/../lib/bootstrap.php';
 
-$db = new Database();
-$logger = new Logger('../logs/activity.log');
+try {
+    $db = db();
+    $itemCode = $_GET['code'] ?? null;
 
-$itemCode = $_GET['code'] ?? null;
+    if (!$itemCode) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Item code is required']);
+        exit;
+    }
 
-if (!$itemCode) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Item code is required']);
-    exit;
+    $db->query('SELECT * FROM items WHERE public_code = :code');
+    $db->bind(':code', $itemCode);
+    $item = $db->queryOne();
+
+    if (!$item) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Item not found']);
+        exit;
+    }
+
+    echo json_encode(['success' => true, 'data' => $item]);
+} catch (Throwable $e) {
+    log_exception($e, 'api_qr_generate');
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Server error']);
 }
-
-// Get item
-$db->query("SELECT * FROM items WHERE public_code = :code");
-$db->bind(':code', $itemCode);
-$item = $db->queryOne();
-
-if (!$item) {
-    http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Item not found']);
-    exit;
-}
-
-// Record scan
-$db->query("INSERT INTO qr_scans (item_id, item_code, ip_address, user_agent) VALUES (:item_id, :item_code, :ip_address, :user_agent)");
-$db->bind(':item_id', $item['id']);
-$db->bind(':item_code', $itemCode);
-$db->bind(':ip_address', $_SERVER['REMOTE_ADDR']);
-$db->bind(':user_agent', $_SERVER['HTTP_USER_AGENT']);
-$db->execute();
-
-$logger->log('QR code scanned', 'INFO', ['item_code' => $itemCode]);
-
-echo json_encode(['success' => true, 'data' => $item]);
-?>
