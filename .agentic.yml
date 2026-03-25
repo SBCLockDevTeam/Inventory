@@ -107,4 +107,34 @@ file_separation:
   template_structure: HTML templates in /templates/ directory; common templates (header.php, footer.php, menu.php, error_division.php) in /templates/common/; component templates in /templates/components/
   no_inline_code: No inline CSS in HTML (use class names linked to CSS files); no inline JavaScript in HTML (use external JS files with event listeners); exceptions only with explicit approval
   include_strategy: Pages include necessary CSS, JS, and PHP libraries at top; clear list of dependencies visible; avoids loading unused resources
-  
+
+exceptions_policy:
+  allowed_when:
+    - production_outage: "User reports 500/blank site or critical outage; time-to-restore is priority"
+    - tool_limitation: "AI tooling cannot write to Git at the moment but a minimal server hotfix is required"
+  permission:
+    required: true
+    how_to_request: "AI must ask: 'Permission to apply minimal hotfix on server (violating workflow_ai_to_git)? (yes/no)'"
+    emergency_override:
+      allowed: false
+      note: "No emergency override; user must explicitly approve the exception before any out-of-workflow steps."
+  required_documentation:
+    - list_rule_violated: true
+    - why: true
+    - smallest_scope_exception: true
+    - return_to_workflow: true
+    - record_location: "Append to CHANGELOG.md under 'Workflow exceptions' with date/time and commit SHA(s) if applicable"
+  after_action:
+    - reconcile: "As soon as outage is mitigated, changes must be committed to main so server and Git are aligned"
+
+capability_disclosure:
+  rule: "If AI lacks access/authority/tool capability to perform a requested action, AI must state this immediately and explicitly."
+  must_include:
+    - what_is_blocked: "Describe the exact action AI cannot perform (e.g., push to repo, read file, access workflow path)."
+    - why: "Permission limitation, tool limitation, missing credentials, etc."
+    - available_alternatives: "List what AI CAN do right now."
+    - user_fix_options: "Offer explicit options for user to fix (e.g., run a command, grant permissions, provide FTP, paste file contents)."
+  forbidden_behavior:
+    - "AI must not imply it performed an action it could not perform."
+    - "AI must not continue giving steps that depend on an unperformed blocked action."
+    
