@@ -108,14 +108,4 @@ file_separation:
   template_structure: HTML templates in /templates/ directory; common templates (header.php, footer.php, menu.php, error_division.php) in /templates/common/; component templates in /templates/components/
   no_inline_code: No inline CSS in HTML (use class names linked to CSS files); no inline JavaScript in HTML (use external JS files with event listeners); exceptions only with explicit approval
   include_strategy: Pages include necessary CSS, JS, and PHP libraries at top; clear list of dependencies visible; avoids loading unused resources
-=======
-# Project Rules
-
-1. **Code of Conduct**: All team members must adhere to the code of conduct outlined in the repository.
-2. **Commit Messages**: Use clear and descriptive commit messages. Each message should convey what changes were made.
-3. **Branch Naming**: Follow a consistent naming convention for branches (e.g., feature/feature-name, bugfix/bugfix-name).
-4. **Code Reviews**: All code must be reviewed by at least one other team member before it is merged into the main branch.
-5. **Testing**: Ensure all new features have accompanying tests. Code should not be merged unless tests pass.
-6. **Documentation**: Update documentation in parallel with code changes, especially if the change affects how the project is used.
-7. **Release Management**: Use tags for version releases and keep changelogs up to date.
->>>>>>> c01addd5fc0f58a82868f884bebca4889f57d0dc
+  
