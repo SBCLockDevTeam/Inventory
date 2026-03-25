@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 general:
   root_path: https://SBCQR.com/qr/
   apache_document_root: Apache points to /var/www/html/sbcqr/; /qr/ is subdirectory
