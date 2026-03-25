@@ -1,17 +1,21 @@
 <?php
-// Function to connect to the database
+
+function app_settings() {
+    // Implementation here
+}
+
 function db() {
-    // Database connection code goes here
+    // Create and return Database instance here
 }
 
 function add_error($error) {
-    // Code to add error goes here
+    // Add error to session here
 }
 
 function get_errors() {
-    // Code to retrieve errors goes here
+    // Return errors from session here
 }
 
 function log_exception($exception) {
-    // Code to log exceptions goes here
+    // Log exception to logs/activity.log using Logger
 }
