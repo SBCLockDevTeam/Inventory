@@ -1,20 +1,20 @@
 <?php
-// Header template with logo, branding, and navigation aids.
+/**
+ * Header Template
+ * Main page header with branding and navigation
+ */
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Header</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <header>
+<header class="main-header">
+    <div class="header-container">
         <div class="logo">
-            <!-- Logo goes here -->
+            <h1>SBC Inventory</h1>
+            <p class="tagline">Security Building Controls</p>
         </div>
-        <nav>
-            <!-- Navigation aids go here -->
-        </nav>
-    </header>
+        <div class="header-actions">
+            <select id="brand-selector" class="brand-selector" onchange="changeBrand(this.value)">
+                <option value="sbc">Security Building Controls</option>
+                <option value="other">Other Brand</option>
+            </select>
+        </div>
+    </div>
+</header>
