@@ -1,0 +1,109 @@
+general:
+  root_path: https://SBCQR.com/qr/
+  apache_document_root: Apache points to /var/www/html/sbcqr/; /qr/ is subdirectory
+  server_root_distinct: Server root is https://SBCQR.com/, project root is distinct at /qr/
+  all_references: All references to this server shall be https://SBCQR.com/qr/
+  config_location: Config file stored in /var/www/html/sbcqr/qr/config/
+  db_credentials_location: DB credentials and other settings stored in same config file
+  config_format: YAML format for structure and clarity
+  git_certificate: Git certificate installed on server, Git and agents can write to server directly
+  workflow_ai_to_git: AI writes to Git repo first
+  workflow_user_pull: User pulls Git to server after AI updates
+  not_job_application: Not applying for a job as AI service
+  user_experience: User is inexperienced, needs explicit and verbose instructions
+  instruction_order: AI shall not tell user to do something out of order; write to Git before asking to pull
+  ajax_json_usage: Use AJAX and JSON or similar functions
+  ftp_access_if_needed: If AI agent unable to perform task, user can give FTP access directly to server path
+  adjust_rules_as_we_go: Rules will be adjusted as we go along
+  work_on_main_branch: Work only on the main branch to avoid confusion
+  server_clone_path: Clone repo to /var/www/html/sbcqr/qr/ on server
+  command_paths: When giving commands to run, give the entire path rather than relative path
+  one_instruction: Give one instruction at a time; review outside code boxes; code boxes are for running commands
+  htaccess_if_needed: Advise on .htaccess updates if needed
+  one_thing_at_time: Give one thing at a time; no multiple allows; no questions after allow
+  path_jail: App shall never write above /var/www/html/sbcqr/qr/
+  reference_repo: AI may read SBCLockDevTeam/SBCQR (https://github.com/SBCLockDevTeam/SBCQR) for reference only; AI shall never edit that repo
+  working_repo: https://github.com/SBCLockDevTeam/Inventory/tree/main
+  avoid_pr: AI shall avoid using pull requests; write directly to main branch
+  read_rules_every_interaction: READ THIS FILE FIRST IN EVERY INTERACTION - it defines all project constraints and workflows
+
+database:
+  db_name: SBCInv
+  db_user: SBCInv
+  db_engine: MariaDB
+  db_charset: utf8mb4
+  db_password: see /config/secrets.php
+
+items:
+  mandatory_fields: Every item has 4 mandatory fields - Item ID (10 hex digits), Item Name, Item Description, Item Primary Image (field exists in DB but user may leave photo blank)
+  item_hierarchy: Items form a tree structure; each item has exactly one parent (location_item_id pointing to a container item); only root items are their own parent
+  root_items: Admin can create multiple root items for different clients/brands; each root item serves as that brand's ultimate parent container; all items must have an ancestor path to their root; exception to circular reference rule - only admin can create root items
+  item_creation_workflow: Three options - (1) manually create new item with custom structure in UI, (2) clone existing item's structure only, or (3) clone existing item's structure AND data
+  item_cloning_structure_only: User selects existing item and clicks "Create new item using this item's structure but not this item's data"; new item gets same custom fields but blank values
+  item_cloning_structure_and_data: User selects existing item and clicks "Create new item using this item's structure AND data"; new item gets same custom fields with copied values by value, not by reference
+  container_items: Items marked as is_container=1 can have 0 or more child items; child items reference the container via location_item_id
+  parent_child_operations: When deleting a container with children, children are moved to the container's parent (not orphaned); deletion workflow must warn user and allow cancel
+  item_movement: Items can be moved to different parent containers after creation; system must automatically prevent circular references (item cannot be moved into one of its own descendants); exception - root items created by admin are exempt from circular reference checks
+  dynamic_fields: Admin user can add dynamic fields to an item; field types are - text, textarea, number, date, checkbox, photo, document, signature
+  photo_field: Photo field allows single or multiple uploads; admin specifies at field definition time whether multiple uploads are allowed
+  document_field: Document upload field; any file type allowed; if file format is recognised it will be made clickable to pop up/display
+  signature_field: Signature field opens a popup box for user to sign using finger or mouse; admin defines instructions text shown in popup; stores signature as image; optionally requires printed name; admin sets printed name required toggle at field definition time
+  general_log: System administrators have access to detailed general log recording most events (item creation, modification, deletion, movement, cloning, field updates, user actions); log entries include timestamp, user, action type, item affected, before/after values where applicable
+  exceptions_log: Customer users have access to simplified Exceptions Log showing only critical events in plain language; entries are concise and customer-focused (e.g., "Item deleted", "Major field changed"); Exceptions Log filtered and formatted for non-technical users
+
+layout:
+  page_sections: Every page must have the following sections in order - Header, Menu, Error Division (hidden when no error), Title, Body, Footer
+  header_content: Header is an HTML template defined in /templates/common/header.php; specific header content (logo, branding, navigation aids) defined in brand templates
+  menu_structure: Primary horizontal navigation menu; menu items may have dropdown submenus (dependants) for nested navigation; mobile versions stack menu items vertically and collapse dropdowns into accordion or hamburger menu
+  menu_data_driven: Menu items and visibility may be data driven based on user role (admin vs customer) and selected brand
+  error_division: Error messages display as a banner directly below the menu; banner hidden when no errors; supports single or multiple error messages
+  error_color_coding: Error messages use color coding - Error (red background), Warning (yellow background), Notice (green background); visual distinction helps user quickly identify severity
+  error_styling: Errors styled consistently with brand colors; dismissed by user action or page navigation
+  footer_content: Footer includes - copyright notice, application version, relevant links, contact information; footer is HTML template defined in /templates/common/footer.php
+  footer_compliance_link: Footer includes link to compliance page; compliance page displays brand-specific compliance information and policies
+  footer_ask_for_changes: Footer includes optional "Ask for Changes" link (by brand configuration); link opens form allowing user to submit feature requests, bug reports, or feedback; form collects user input and emails submission to info@securitybuildingcontrols.com
+  ask_for_changes_form: Form collects - user name, email, subject, message, category (feature request / bug report / feedback); submitted data emailed to info@securitybuildingcontrols.com; form includes confirmation message after successful submission
+  branding: Each page displays branding based on selected brand; branding is currently a text name/chunk of text; later will be a full HTML template
+  brand_selector: A dropdown in the top right of every page allows user to select a brand; this is a placeholder for future user login and authentication
+  brand_selector_default: When user first visits, system default brand is loaded
+  brand_selector_persistence: When user changes brand via dropdown, selected brand persists for that user's session; brand selection maintained across page navigation until user changes it or session ends
+  no_auth_yet: No user authentication implemented yet; brand selector drives session branding only
+  consistent_layout: Page layout and organisation must be consistent across all pages
+  content_data_driven: Content and menu items may be data driven based on user type and brand in future
+  responsive_design: Layout must be responsive; desktop uses full horizontal menu with dropdowns; tablet uses modified menu with collapsible sections; mobile uses stacked vertical menu with hamburger/accordion navigation; all breakpoints tested and functional
+  branding_visual: Branding defines colors, typography, spacing, and visual hierarchy; consistent across all pages; brand templates control CSS variables or class overrides for logo, header background, menu styling, footer styling, link colors, button styles
+
+code_organization:
+  dry_principle: Do not repeat yourself; reusable functions and components used across multiple pages must be extracted to shared library files
+  separation_of_concerns: CSS, HTML (templates), PHP, and JavaScript must be in separate files; no inline styles or scripts except where absolutely necessary
+  directory_structure: Root level has - /css/ for stylesheets, /js/ for JavaScript, /templates/ for HTML fragments, /lib/ for PHP utility functions, /assets/ for images and media
+  naming_conventions: File names are descriptive and lowercase with underscores (e.g., photo_upload_widget.js, form_helpers.php); variable and function names follow language conventions
+  reusable_components: Common functionality (photo upload, form validation, error handling) must be in shared library files with clear interfaces; pages include these libraries and call functions rather than duplicating code
+  page_structure: Each page includes - header template, menu template, error division, title, main body content, footer template; use PHP includes or template engine to avoid duplication
+  database_prepared_statements: All database queries must use prepared statements with parameterized placeholders; prevents SQL injection attacks; no string concatenation in SQL queries
+  database_helpers: Reusable database helper functions must be created in /lib/database.php; common helpers include - queryOne() (returns single row or null), queryAll() (returns array of rows), queryCount() (returns row count), execute() (runs INSERT/UPDATE/DELETE, returns affected rows), transaction management (beginTransaction(), commit(), rollback())
+  database_helper_pattern: All database operations use these helpers; eliminates code repetition; ensures consistent error handling and prepared statement usage across entire codebase
+  code_comments: Code must include meaningful comments; comments explain why code does something, not what it does (the code itself shows what); avoid obvious comments ("increment counter by 1")
+  function_documentation: All functions must have documentation blocks above the function signature including - description, parameters with types, return value with type, example usage if not obvious
+  inline_comments: Complex logic blocks must have inline comments explaining the approach; business logic must be documented; security-related code must be commented
+  configuration_separation: Configuration values split into two categories - (1) settings (database host, paths, branding config) stored in /config/ files, (2) sensitive data (database credentials, API keys, email passwords) stored in separate /config/secrets.php file
+  secrets_file_security: /config/secrets.php must never be committed to Git; add to .gitignore; each developer/server has their own copy with environment-specific credentials
+  secrets_file_example: /config/secrets.php.example committed to Git as template; shows required keys and format but with placeholder/dummy values; developers copy to secrets.php and fill in real credentials
+  settings_accessibility: Settings in /config/ are application-wide; can be accessed via include or global config object; settings may be data-driven (loaded from database) for branding/feature flags
+
+photo_capture:
+  workflow_simplified: Photo upload workflow must be streamlined; user clicks upload button once, presented with single choice dialog
+  choice_dialog: Dialog presents two options - "Take Photo with Camera" or "Browse for Image File"; both options from single interaction point
+  no_confirmation_on_direct_selection: When user browses for image and selects file, image is immediately used; no confirmation dialog
+  no_confirmation_on_camera_capture: When user takes photo with camera, photo is immediately used; no confirmation dialog or preview screen required
+  camera_to_upload_instant: Camera closes automatically after photo is taken and captured image is ready for upload
+  single_upload_button: Single "Upload Image" or "Add Photo" button triggers the entire workflow; reduces cognitive load and clicks
+  mobile_first_ux: Camera interface optimized for mobile touch; tap to capture, no multi-step process
+
+file_separation:
+  css_structure: All CSS in /css/ directory; global styles in /css/style.css, component-specific styles in /css/components/ (e.g., photo_upload.css, form.css, layout.css)
+  js_structure: All JavaScript in /js/ directory; utility functions in /js/lib/ (e.g., photo_capture.js, form_validation.js, ajax_helpers.js), page-specific scripts in /js/pages/ (e.g., add_item.js, edit_item.js)
+  php_structure: Page files in appropriate directories (e.g., /admin/items/add.php); reusable functions in /lib/ (e.g., /lib/photo_handler.php, /lib/form_helpers.php, /lib/database.php); include files do not render output
+  template_structure: HTML templates in /templates/ directory; common templates (header.php, footer.php, menu.php, error_division.php) in /templates/common/; component templates in /templates/components/
+  no_inline_code: No inline CSS in HTML (use class names linked to CSS files); no inline JavaScript in HTML (use external JS files with event listeners); exceptions only with explicit approval
+  include_strategy: Pages include necessary CSS, JS, and PHP libraries at top; clear list of dependencies visible; avoids loading unused resources
