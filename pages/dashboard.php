@@ -27,7 +27,7 @@ $brands = $db->queryAll('SELECT id, name FROM brands ORDER BY name ASC');
 // Load the active brand record (if one is selected).
 $brand = null;
 if ($activeBrandId !== null) {
-    $brand = $db->queryOne('SELECT * FROM brands WHERE id = ?', [$activeBrandId]);
+    $brand = $db->queryOne('SELECT * FROM brands WHERE id = :id', [':id' => $activeBrandId]);
 }
 
 ?>
@@ -38,6 +38,7 @@ if ($activeBrandId !== null) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/layout.css">
 </head>
 <body>
 
