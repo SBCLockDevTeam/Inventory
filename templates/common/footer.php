@@ -1,22 +1,9 @@
-<?php
-/**
- * Footer Template
- * 
- * Copyright, version, links, compliance, feedback
- */
-?>
-<footer class="site-footer">
+<footer>
     <div class="footer-content">
-        <p>&copy; 2026 Security Building Controls. All rights reserved.</p>
-        
-        <div class="footer-links">
-            <a href="/qr/compliance/">Compliance</a>
-            <a href="/qr/contact/">Contact</a>
-            <a href="/qr/feedback/">Ask for Changes</a>
-        </div>
-        
-        <div class="footer-version">
-            <small>Version 1.0.0</small>
-        </div>
+        <p>&copy; <?php echo date('Y'); ?> Security Building Controls. All rights reserved.</p>
+        <p>Version 1.0.0</p>
+        <p><a href="/compliance/">Compliance</a> | <a href="#" id="ask-changes">Ask for Changes</a></p>
     </div>
 </footer>
+</body>
+</html>
