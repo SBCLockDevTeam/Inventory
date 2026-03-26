@@ -1,0 +1,236 @@
+/* Global Styles for QR Inventory System */
+
+/* Reset and base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+/* Header */
+header {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 1rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo h1 {
+    font-size: 1.5rem;
+}
+
+.brand-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-selector select {
+    padding: 0.25rem;
+    border: none;
+    border-radius: 4px;
+}
+
+/* Menu */
+nav.menu {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+.menu-list {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.menu-list li {
+    position: relative;
+}
+
+.menu-list a {
+    display: block;
+    padding: 1rem;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.menu-list a:hover {
+    background-color: #2c3e50;
+}
+
+.menu-list .submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #34495e;
+    min-width: 200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.menu-list li:hover .submenu {
+    display: block;
+}
+
+.submenu li {
+    display: block;
+}
+
+.submenu a {
+    padding: 0.75rem 1rem;
+}
+
+/* Error Division */
+.error-division {
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    display: none;
+}
+
+.warning {
+    background-color: #f39c12;
+}
+
+.notice {
+    background-color: #27ae60;
+}
+
+.success-banner {
+    background-color: #27ae60;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Main content */
+h1 {
+    text-align: center;
+    margin: 2rem 0;
+    color: #2c3e50;
+}
+
+.body-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+/* Footer */
+footer {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+.footer-content p {
+    margin: 0.25rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .menu-list {
+        flex-direction: column;
+    }
+    
+    .menu-list li {
+        width: 100%;
+    }
+    
+    .submenu {
+        position: static;
+        display: none;
+        background-color: #2c3e50;
+    }
+    
+    .menu-list li:hover .submenu {
+        display: block;
+    }
+    
+    .body-content {
+        padding: 0.5rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-list a {
+        padding: 0.75rem;
+    }
+    
+    .submenu a {
+        padding: 0.5rem 0.75rem;
+    }
+}
