@@ -1,0 +1,79 @@
+general:
+  root_path: https://SBCQR.com/qr/
+  apache_document_root: Apache points to /var/www/html/sbcqr/; /qr/ is subdirectory
+  server_root_distinct: Server root is https://SBCQR.com/, project root is distinct at /qr/
+  all_references: All references to this server shall be https://SBCQR.com/qr/
+  config_location: Config file stored in /var/www/html/sbcqr/qr/config/
+  db_credentials_location: DB credentials and other settings stored in same config file
+  config_format: YAML format for structure and clarity
+  git_certificate: Git certificate installed on server, Git and agents can write to server directly
+  workflow_ai_to_git: AI writes to Git repo first
+  workflow_user_pull: User pulls Git to server after AI updates
+  not_job_application: Not applying for a job as AI service
+  user_experience: User is inexperienced, needs explicit and verbose instructions
+  instruction_order: AI shall not tell user to do something out of order; write to Git before asking to pull
+  ajax_json_usage: Use AJAX and JSON or similar functions
+  ftp_access_if_needed: If AI agent unable to perform task, user can give FTP access directly to server path
+  adjust_rules_as_we_go: Rules will be adjusted as we go along
+  work_on_main_branch: Work only on the main branch to avoid confusion
+  server_clone_path: Clone repo to /var/www/html/sbcqr/qr/ on server
+  command_paths: When giving commands to run, give the entire path rather than relative path
+  one_instruction: Give one instruction at a time; review outside code boxes; code boxes are for running commands
+  htaccess_if_needed: Advise on .htaccess updates if needed
+  one_thing_at_time: Give one thing at a time; no multiple allows; no questions after allow
+  path_jail: App shall never write above /var/www/html/sbcqr/qr/
+  reference_repo: AI may read SBCLockDevTeam/SBCQR (https://github.com/SBCLockDevTeam/SBCQR) for reference only; AI shall never edit that repo
+  working_repo: https://github.com/SBCLockDevTeam/Inventory/tree/main
+  avoid_pr: AI shall avoid using pull requests; write directly to main branch
+  read_rules_every_interaction: READ THIS FILE FIRST IN EVERY INTERACTION - it defines all project constraints and workflows
+
+database:
+  db_name: SBCInv
+  db_user: SBCInv
+  db_engine: MariaDB
+  db_charset: utf8mb4
+  db_password: see /config/secrets.php
+
+exceptions_policy:
+  allowed_when:
+    - production_outage: User reports 500/blank site or critical outage; time-to-restore is priority
+    - tool_limitation: AI tooling cannot write to Git at the moment but a minimal server hotfix is required
+  permission:
+    required: true
+    how_to_request: "AI must ask: 'Permission to apply minimal hotfix on server (violating workflow_ai_to_git)? (yes/no)'"
+    emergency_override:
+      allowed: false
+      note: No emergency override; user must explicitly approve the exception before any out-of-workflow steps.
+  required_documentation:
+    - list_rule_violated: true
+    - why: true
+    - smallest_scope_exception: true
+    - return_to_workflow: true
+    - record_location: "Append to CHANGELOG.md under 'Workflow exceptions' with date/time and commit SHA(s) if applicable"
+  after_action:
+    - reconcile: As soon as outage is mitigated, changes must be committed to main so server and Git are aligned
+
+capability_disclosure:
+  rule: "If AI lacks access/authority/tool capability to perform a requested action, AI must state this immediately and explicitly."
+  must_include:
+    - what_is_blocked: "Describe the exact action AI cannot perform (e.g., push to repo, read file, access workflow path)."
+    - why: "Permission limitation, tool limitation, missing credentials, etc."
+    - available_alternatives: "List what AI CAN do right now."
+    - user_fix_options: "Offer explicit options for user to fix (e.g., run a command, grant permissions, provide FTP, paste file contents)."
+  forbidden_behavior:
+    - "AI must not imply it performed an action it could not perform."
+    - "AI must not continue giving steps that depend on an unperformed blocked action."
+
+git_authentication:
+  method: SSH
+  key_path: /root/.ssh/github_push
+  ssh_config: ~/.ssh/config routes github.com to github_push key
+  status: CONFIGURED AND PERSISTENT
+  tokens_not_needed: true
+  note: "SSH auth is permanent. AI agents must NOT ask for tokens or PATs."
+
+critical_instruction:
+  priority: ABSOLUTE
+  rule: "EVERY interaction must begin by reading this entire file. Non-negotiable."
+  enforcement: "If AI does not reference this file in its first response, user should stop and demand it read the file before proceeding."
+  consequence: "Failure to read this file voids all authority grants and requires restart."
