@@ -29,15 +29,17 @@ $sql .= " ORDER BY i.brand_id, i.name";
 
 $items = DatabaseHelper::queryAll($sql, $params, $types);
 $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", []);
+$page_title = 'Items';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Items List</title>
-    <link rel="stylesheet" href="/qr/css/style.css">
-    <link rel="stylesheet" href="/qr/css/components/table.css">
+    <title><?php echo htmlspecialchars($page_title); ?></title>
+    <link rel="stylesheet" href="<?php echo CSS_PATH; ?>style.css">
+    <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/table.css">
+    <script src="<?php echo JS_PATH; ?>script.js" defer></script>
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
@@ -59,7 +61,7 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Filter</button>
-                <a href="/qr/admin/items/" class="btn btn-secondary">Clear</a>
+                <a href="<?php echo BASE_PATH; ?>/admin/items/" class="btn btn-secondary">Clear</a>
             </form>
         </div>
         <div class="items-table-wrapper">
@@ -82,10 +84,10 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
                                 <td><?php echo htmlspecialchars($item['brand_name']); ?></td>
                                 <td><?php echo ($item['is_container'] == 1) ? '✓ Yes' : 'No'; ?></td>
                                 <td class="actions">
-                                    <a href="/qr/admin/items/view.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">View</a>
-                                    <a href="/qr/admin/items/edit.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Edit</a>
-                                    <a href="/qr/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small btn-danger">Delete</a>
-                                    <a href="/qr/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Fields</a>
+                                    <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">View</a>
+                                    <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Edit</a>
+                                    <a href="<?php echo BASE_PATH; ?>/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small btn-danger">Delete</a>
+                                    <a href="<?php echo BASE_PATH; ?>/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Fields</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -98,7 +100,7 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
             </table>
         </div>
         <div class="actions-bottom">
-            <a href="/qr/admin/items/add.php" class="btn btn-primary">+ Create New Item</a>
+            <a href="<?php echo BASE_PATH; ?>/admin/items/add.php" class="btn btn-primary">+ Create New Item</a>
         </div>
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
