@@ -51,6 +51,13 @@ if ($item === null) {
     }
 }
 
+$menuItems = [
+    ['label' => 'Dashboard', 'url' => BASE_URL . '/'],
+    ['label' => 'Items', 'url' => BASE_URL . '/item'],
+    ['label' => 'Admin', 'url' => BASE_URL . '/admin'],
+    ['label' => 'Compliance', 'url' => BASE_URL . '/compliance'],
+];
+
 ?>
 <?php include __DIR__ . '/../templates/common/header.php'; ?>
 <?php include __DIR__ . '/../templates/common/menu.php'; ?>
