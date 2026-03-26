@@ -85,6 +85,7 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
                                     <a href="/qr/admin/items/view.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">View</a>
                                     <a href="/qr/admin/items/edit.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Edit</a>
                                     <a href="/qr/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small btn-danger">Delete</a>
+                                    <a href="/qr/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-small">Fields</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
