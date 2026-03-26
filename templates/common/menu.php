@@ -1,10 +1,13 @@
-<?php
-// Common menu template
-?>
-<nav class="main-menu">
-    <ul>
-        <li><a href="/index.php">Home</a></li>
-        <li><a href="/admin/items/index.php">Items</a></li>
-        <!-- Add more menu items as needed -->
+<nav class="menu">
+    <ul class="menu-list">
+        <li><a href="/">Home</a></li>
+        <li><a href="/admin/items/">Items</a>
+            <ul class="submenu">
+                <li><a href="/admin/items/add.php">Add Item</a></li>
+                <li><a href="/admin/items/">View Items</a></li>
+            </ul>
+        </li>
+        <li><a href="#">Reports</a></li>
+        <li><a href="#">Settings</a></li>
     </ul>
 </nav>
