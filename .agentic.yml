@@ -137,4 +137,12 @@ capability_disclosure:
   forbidden_behavior:
     - "AI must not imply it performed an action it could not perform."
     - "AI must not continue giving steps that depend on an unperformed blocked action."
+
+git_authentication:
+  method: SSH
+  key_path: /root/.ssh/github_push
+  ssh_config: ~/.ssh/config routes github.com to github_push key
+  status: CONFIGURED AND PERSISTENT
+  tokens_not_needed: true
+  note: "SSH auth is permanent. AI agents must NOT ask for tokens or PATs."    
     
