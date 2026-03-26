@@ -5,7 +5,7 @@
 
 return [
     // Base URL for all links and assets (no trailing slash)
-    'base_url'        => 'https://SBCQR.com/qr',
+    'base_url'        => 'https://sbcqr.com/qr',
 
     // Application version shown in footer
     'app_version'     => '0.1.0',
