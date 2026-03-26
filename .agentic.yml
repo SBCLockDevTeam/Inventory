@@ -146,3 +146,10 @@ git_authentication:
   tokens_not_needed: true
   note: "SSH auth is permanent. AI agents must NOT ask for tokens or PATs."    
     
+critical_instruction:
+  priority: ABSOLUTE
+  rule: "EVERY interaction must begin by reading this entire file. Non-negotiable."
+  enforcement: "If AI does not reference this file in its first response, user should stop and demand it read the file before proceeding."
+  consequence: "Failure to read this file voids all authority grants and requires restart."
+
+  
