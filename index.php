@@ -15,35 +15,32 @@ require_once __DIR__ . '/lib/bootstrap.php';
 $settings = app_settings();
 
 // ── 2. Define BASE_URL constant used by all templates ───────────────────────
-// Value from config/settings.php → 'https://SBCQR.com/qr'
 define('BASE_URL', rtrim($settings['base_url'], '/'));
 
-// ── 3. Session ────────────────���──────────────────────────────────────────────
+// ── 3. Session ───────────────────────────────────────────────────────────────
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-// ── 4. Ensure uploads directory exists (full absolute path) ─────────────────
-$uploadDir = $settings['upload_path'];   // __DIR__ . '/../assets/uploads'
+// ── 4. Ensure uploads directory exists ──────────────────────────────────────
+$uploadDir = $settings['upload_path'];
 if (!is_dir($uploadDir)) {
     @mkdir($uploadDir, 0775, true);
 }
 
 // ── 5. Route ────────────────────────────────────────────────────────────────
-// Strip the /qr prefix and leading slash to get the logical path.
 $requestUri  = $_SERVER['REQUEST_URI'] ?? '/';
 $basePath    = parse_url(BASE_URL, PHP_URL_PATH); // '/qr'
 $logicalPath = '/' . ltrim(substr($requestUri, strlen($basePath)), '/');
-$logicalPath = strtok($logicalPath, '?');          // strip query string
+$logicalPath = strtok($logicalPath, '?');
 
-// Map logical paths to page controllers.
+// Note: no /scan route — QR codes embed the item URL directly (/qr/item?id=...).
 $routes = [
-    '/'            => __DIR__ . '/pages/dashboard.php',
-    '/dashboard'   => __DIR__ . '/pages/dashboard.php',
-    '/scan'        => __DIR__ . '/pages/scan.php',
-    '/item'        => __DIR__ . '/pages/item.php',
-    '/admin'       => __DIR__ . '/pages/admin.php',
-    '/compliance'  => __DIR__ . '/pages/compliance.php',
+    '/'           => __DIR__ . '/pages/dashboard.php',
+    '/dashboard'  => __DIR__ . '/pages/dashboard.php',
+    '/item'       => __DIR__ . '/pages/item.php',
+    '/admin'      => __DIR__ . '/pages/admin.php',
+    '/compliance' => __DIR__ . '/pages/compliance.php',
 ];
 
 $page = $routes[$logicalPath] ?? null;
@@ -54,6 +51,7 @@ if ($page !== null && file_exists($page)) {
     http_response_code(404);
     $pageTitle = '404 – Page Not Found';
     $brand     = [];
+    $brands    = [];
     include __DIR__ . '/templates/common/header.php';
     include __DIR__ . '/templates/common/menu.php';
     echo '<main class="main-content"><div class="container"><h1>404 – Page Not Found</h1>';
