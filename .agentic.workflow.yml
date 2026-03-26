@@ -34,6 +34,59 @@ database:
   db_charset: utf8mb4
   db_password: see /config/secrets.php
 
+database_schema:
+  tables:
+    - brands:
+        fields:
+          - id: INT AUTO_INCREMENT PRIMARY KEY
+          - name: VARCHAR(255) NOT NULL
+          - description: TEXT
+          - created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
+          - updated_at: DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    - items:
+        fields:
+          - id: VARCHAR(10) PRIMARY KEY (10 hex digits)
+          - name: VARCHAR(255) NOT NULL
+          - description: TEXT
+          - primary_image: VARCHAR(255) NULL (path to image)
+          - location_item_id: VARCHAR(10) NOT NULL (references items.id, self for root)
+          - is_container: TINYINT(1) DEFAULT 0
+          - brand_id: INT NOT NULL (references brands.id)
+          - created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
+          - updated_at: DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        indexes:
+          - location_item_id
+          - brand_id
+    - item_fields:
+        fields:
+          - id: INT AUTO_INCREMENT PRIMARY KEY
+          - item_id: VARCHAR(10) NOT NULL (references items.id)
+          - field_name: VARCHAR(255) NOT NULL
+          - field_type: ENUM('text','textarea','number','date','checkbox','photo','document','signature') NOT NULL
+          - field_value: TEXT NULL (JSON for multiple photos/docs)
+          - is_required: TINYINT(1) DEFAULT 0
+          - created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
+        indexes:
+          - item_id
+    - logs_general:
+        fields:
+          - id: INT AUTO_INCREMENT PRIMARY KEY
+          - user_id: INT NULL (placeholder for future auth)
+          - action: VARCHAR(255) NOT NULL
+          - item_id: VARCHAR(10) NULL
+          - details: JSON NULL (before/after values)
+          - timestamp: DATETIME DEFAULT CURRENT_TIMESTAMP
+        indexes:
+          - item_id
+          - timestamp
+    - logs_exceptions:
+        fields:
+          - id: INT AUTO_INCREMENT PRIMARY KEY
+          - event: VARCHAR(255) NOT NULL (plain language)
+          - timestamp: DATETIME DEFAULT CURRENT_TIMESTAMP
+        indexes:
+          - timestamp
+
 items:
   mandatory_fields: Every item has 4 mandatory fields - Item ID (10 hex digits), Item Name, Item Description, Item Primary Image (field exists in DB but user may leave photo blank)
   item_hierarchy: Items form a tree structure; each item has exactly one parent (location_item_id pointing to a container item); only root items are their own parent
@@ -145,9 +198,3 @@ git_authentication:
   status: CONFIGURED AND PERSISTENT
   tokens_not_needed: true
   note: "SSH auth is permanent. AI agents must NOT ask for tokens or PATs."
-
-critical_instruction:
-  priority: ABSOLUTE
-  rule: "EVERY interaction must begin by reading this entire file. Non-negotiable."
-  enforcement: "If AI does not reference this file in its first response, user should stop and demand it read the file before proceeding."
-  consequence: "Failure to read this file voids all authority grants and requires restart.".
