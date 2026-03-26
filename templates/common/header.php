@@ -1,24 +1,26 @@
 <?php
-/**
- * Header Template
- * 
- * Displays site header with logo/branding
- * Brand selector dropdown in top right
- */
-
-// Default brand if not set
-$current_brand = $_SESSION['brand'] ?? 'Default';
+// Common header template
+$page_title = $page_title ?? 'QR Inventory System';
 ?>
-<header class="site-header">
-    <div class="header-container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo htmlspecialchars($page_title); ?></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/script.js" defer></script>
+</head>
+<body>
+<header>
+    <div class="header-content">
         <div class="logo">
-            <h1>SBC Inventory System</h1>
+            <h1><?php echo htmlspecialchars($page_title); ?></h1>
         </div>
-        
         <div class="brand-selector">
-            <label for="brand-dropdown">Brand:</label>
-            <select id="brand-dropdown" name="brand" onchange="changeBrand(this.value)">
-                <option value="default" <?php echo ($current_brand === 'Default') ? 'selected' : ''; ?>>Default</option>
+            <label for="brand-select">Brand:</label>
+            <select id="brand-select">
+                <option value="default">Default Brand</option>
             </select>
         </div>
     </div>
