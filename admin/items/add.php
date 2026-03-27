@@ -19,6 +19,11 @@ $location_item_id = 'root';
 $active_client  = ClientHelper::getActiveClient();
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 
+// Suggest a unique ID when the page first loads (GET request)
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $public_code = DatabaseHelper::generateUniqueCode();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $public_code  = FormHelper::getPost('public_code');
     $name         = FormHelper::getPost('name');
@@ -91,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($affected > 0) {
             $success          = true;
-            $public_code      = '';
+            // Suggest a fresh unique ID ready for the next item
+            $public_code      = DatabaseHelper::generateUniqueCode();
             $name             = '';
             $description      = '';
             $is_container     = 0;

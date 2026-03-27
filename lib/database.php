@@ -159,5 +159,35 @@ class DatabaseHelper {
         self::init();
         self::$connection->rollBack();
     }
+
+    /**
+     * Generate a unique 10-character lowercase hex public code that does not
+     * already exist in the items table.
+     *
+     * Uses cryptographically random bytes (5 bytes = 10 hex chars) and retries
+     * on the rare chance of a collision with an existing item ID.
+     *
+     * @param int $maxAttempts Maximum number of generation attempts before giving up
+     * @return string 10-char lowercase hex string, or empty string if unable to generate
+     * @example $code = DatabaseHelper::generateUniqueCode(); // e.g. "3f8a1c0b2e"
+     */
+    public static function generateUniqueCode($maxAttempts = 10) {
+        self::init();
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            // 5 random bytes → 10 lowercase hex characters
+            $code     = bin2hex(random_bytes(5));
+            $existing = self::queryOne(
+                "SELECT public_code FROM items WHERE public_code = ?",
+                [$code]
+            );
+            if (!$existing) {
+                return $code;
+            }
+        }
+
+        // Extremely unlikely to reach here; caller should handle empty string
+        return '';
+    }
 }
 ?>
