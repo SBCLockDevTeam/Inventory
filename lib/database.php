@@ -120,6 +120,15 @@ class DatabaseHelper {
     }
 
     /**
+     * Get the last inserted row ID
+     * @return int|string Last insert ID
+     */
+    public static function getLastInsertId() {
+        self::init();
+        return self::$connection->lastInsertId();
+    }
+
+    /**
      * Get last error
      * @return string
      */

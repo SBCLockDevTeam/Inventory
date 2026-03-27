@@ -35,7 +35,7 @@ $page_title = 'QR Inventory System';
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/table.css">
     <script src="<?php echo JS_PATH; ?>script.js" defer></script>
 </head>
-<body>
+<body data-base-path="<?php echo BASE_PATH; ?>">
     <?php include __DIR__ . '/templates/common/header.php'; ?>
     <?php include __DIR__ . '/templates/common/menu.php'; ?>
     <div class="body-content">
