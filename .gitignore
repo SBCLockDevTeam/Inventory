@@ -1,6 +1,17 @@
 # Ignore sensitive files
 /config/secrets.php
 
+# Upload directories (user-generated content, not tracked in Git)
+# Keep directory structure and security files, ignore actual uploaded files
+/uploads/**
+!/uploads/.htaccess
+!/uploads/photos/
+!/uploads/photos/.gitkeep
+!/uploads/documents/
+!/uploads/documents/.gitkeep
+!/uploads/signatures/
+!/uploads/signatures/.gitkeep
+
 # Common ignores
 *.log
 .DS_Store

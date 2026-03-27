@@ -1,0 +1,212 @@
+/* Photo Upload Widget Styles */
+
+/* ----------------------------------------------------------------
+   Photo choice dialog overlay
+   ---------------------------------------------------------------- */
+.photo-choice-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.photo-choice-overlay.active {
+    display: flex;
+}
+.photo-choice-dialog {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 340px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.photo-choice-dialog h3 {
+    margin-bottom: 1.25rem;
+    color: #2c3e50;
+}
+.photo-choice-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.photo-choice-btns .btn {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+}
+.photo-choice-cancel {
+    margin-top: 0.5rem;
+    background: none;
+    border: none;
+    color: #95a5a6;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+.photo-choice-cancel:hover { color: #7f8c8d; }
+
+/* ----------------------------------------------------------------
+   Photo thumbnails
+   ---------------------------------------------------------------- */
+.photo-thumbnails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.photo-thumb-wrap {
+    position: relative;
+    display: inline-block;
+}
+.photo-thumb-wrap img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #bdc3c7;
+    cursor: pointer;
+}
+.photo-thumb-wrap .photo-delete-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* ----------------------------------------------------------------
+   Signature widget
+   ---------------------------------------------------------------- */
+.signature-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.signature-overlay.active {
+    display: flex;
+}
+.signature-dialog {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 520px;
+    width: 95%;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.signature-dialog h3 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+.signature-instructions {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+.signature-canvas-wrap {
+    border: 2px solid #bdc3c7;
+    border-radius: 4px;
+    background: #fff;
+    cursor: crosshair;
+    touch-action: none;
+}
+#signature-canvas {
+    display: block;
+    width: 100%;
+}
+.signature-printed-name-group {
+    margin-top: 0.75rem;
+}
+.signature-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+.signature-preview {
+    margin-top: 0.75rem;
+}
+.signature-preview img {
+    max-width: 100%;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+}
+
+/* ----------------------------------------------------------------
+   Document upload list
+   ---------------------------------------------------------------- */
+.document-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+.document-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+.document-list li:last-child { border-bottom: none; }
+.doc-delete-btn {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+/* ----------------------------------------------------------------
+   Field values display (view page)
+   ---------------------------------------------------------------- */
+.field-values-section {
+    margin-top: 1.5rem;
+}
+.field-value-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0.5rem 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ecf0f1;
+    align-items: start;
+}
+.field-value-row:last-child { border-bottom: none; }
+.field-value-label {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+.field-value-content {
+    color: #333;
+}
+.field-value-empty {
+    color: #bdc3c7;
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .field-value-row {
+        grid-template-columns: 1fr;
+    }
+    .photo-thumb-wrap img {
+        width: 80px;
+        height: 80px;
+    }
+}

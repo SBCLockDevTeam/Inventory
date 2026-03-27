@@ -6,6 +6,25 @@
 
 ## Changes
 
+### 2026-03-27 — Phase 2: Core feature completion
+
+- **Dynamic field values**: Created `admin/items/values.php` — users can now enter, view, and update values for all custom field types (text, textarea, number, date, checkbox, photo, document, signature) on any item.
+- **Field values on view page**: Updated `admin/items/view.php` to display a read-only summary of all field values beneath the item details. "Fill Values" and "Clone Item" action buttons added.
+- **Photo upload**: Created `api/upload_photo.php` and `api/delete_photo.php` AJAX endpoints. Created `js/lib/photo_capture.js` reusable widget — single button opens a dialog offering "Take Photo with Camera" or "Browse for Image File" as per UX spec.
+- **Document upload**: Created `api/upload_document.php` and `api/delete_document.php` AJAX endpoints. Files stored in `/uploads/documents/`.
+- **Signature capture**: Created `api/save_signature.php` and `api/delete_signature.php` AJAX endpoints. Created `js/lib/signature_capture.js` — canvas-based signature dialog with touch/mouse drawing, optional printed name, and instructions text.
+- **Item cloning**: Created `admin/items/clone.php` — supports structure-only clone (field definitions, blank values) and structure+data clone (field definitions + scalar values copied by value, not by reference). Photos/documents/signatures are not cloned.
+- **Field delete**: Fixed placeholder Delete buttons in `admin/items/fields.php` — wired to new `admin/items/field_delete.php` AJAX endpoint. Cascading DB deletes automatically remove all stored values for the deleted field.
+- **Inline JS removed**: Extracted `<script>` block from `fields.php` into `js/pages/fields.js`. No more inline JavaScript.
+- **Log views**: Created `admin/logs/index.php` (general log, admin-only, paginated, filterable by item and action type) and `admin/logs/exceptions.php` (exceptions log, customer-facing, plain language). Menu updated with Logs section.
+- **Ask for Changes form**: Replaced JavaScript `alert()` stub with a proper accessible modal. Created `templates/common/ask_changes_modal.php`, `api/ask_changes.php` AJAX endpoint (emails `info@securitybuildingcontrols.com`), and updated `js/script.js` and `templates/common/footer.php`.
+- **Hamburger menu**: Mobile navigation now uses a hamburger toggle button. Menu collapses on small screens and expands on click. Responsive CSS added to `css/style.css`.
+- **FieldHelper library**: Created `lib/field_helper.php` with reusable helpers for field definitions, scalar values, photos, documents, signatures, and logging (`logGeneral`, `logException`).
+- **Database helper**: Added `getLastInsertId()` method to `lib/database.php`.
+- **Upload security**: Created `/uploads/.htaccess` blocking PHP execution in the uploads directory. Subdirectory structure committed with `.gitkeep`. Uploaded files excluded from Git via `.gitignore`.
+- **CSS**: Created `css/components/photo_upload.css` for photo thumbnails, document list, signature widget, and field value display styles. Modal and utility styles appended to `css/style.css`.
+- **Menu**: Updated `templates/common/menu.php` — Logs menu item added (shows General Log for admins only); hamburger button added for mobile.
+
 - Fix: Add `is_admin` column to `users` table in `db/schema.sql`; regular users vs admin users are now distinguishable.
 - Fix: Created `db/migrations/001_add_is_admin_to_users.sql` for existing installations to apply the schema change.
 - Fix: Updated `db/seed.sql` to set `is_admin = 1` for Alice, Charlie, and Diana (default users); Bob is a non-admin regular user.

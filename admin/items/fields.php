@@ -70,6 +70,7 @@ $page_title = 'Manage Fields - ' . htmlspecialchars($item['name']);
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/table.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/form.css">
     <script src="<?php echo JS_PATH; ?>script.js" defer></script>
+    <script src="<?php echo JS_PATH; ?>pages/fields.js" defer></script>
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
@@ -109,8 +110,11 @@ $page_title = 'Manage Fields - ' . htmlspecialchars($item['name']);
                                 <td><?php echo $field['required'] ? 'Yes' : 'No'; ?></td>
                                 <td><?php echo $field['allow_multiple'] ? 'Yes' : 'No'; ?></td>
                                 <td class="actions">
-                                    <a href="#" class="btn btn-small">Edit</a>
-                                    <a href="#" class="btn btn-small btn-danger">Delete</a>
+                                    <a href="#" class="btn btn-small btn-danger field-delete-btn"
+                                       data-field-id="<?php echo (int)$field['id']; ?>"
+                                       data-field-label="<?php echo htmlspecialchars($field['label']); ?>"
+                                       data-item-id="<?php echo htmlspecialchars($item['public_code']); ?>"
+                                       data-delete-url="<?php echo BASE_PATH; ?>/admin/items/field_delete.php">Delete</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -171,23 +175,3 @@ $page_title = 'Manage Fields - ' . htmlspecialchars($item['name']);
         </div>
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-
-<script>
-document.getElementById('field_type').addEventListener('change', function() {
-    const type = this.value;
-    const multipleGroup = document.getElementById('multiple-group');
-    const printedNameGroup = document.getElementById('printed-name-group');
-    
-    if (['photo', 'document', 'signature'].includes(type)) {
-        multipleGroup.style.display = 'block';
-    } else {
-        multipleGroup.style.display = 'none';
-    }
-    
-    if (type === 'signature') {
-        printedNameGroup.style.display = 'block';
-    } else {
-        printedNameGroup.style.display = 'none';
-    }
-});
-</script>

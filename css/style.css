@@ -338,3 +338,184 @@ footer {
         padding: 0.5rem 0.75rem;
     }
 }
+/* ================================================================
+   Modal overlay (Ask for Changes and shared modals)
+   ================================================================ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.active {
+    display: flex;
+}
+.modal-dialog {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 520px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.modal-dialog h2 {
+    margin-bottom: 1.25rem;
+    color: #2c3e50;
+    text-align: left;
+    font-size: 1.25rem;
+}
+.success-message {
+    color: #27ae60;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* ================================================================
+   Hamburger / mobile navigation
+   ================================================================ */
+.hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+/* Item detail card (view page) */
+.item-detail-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.item-detail-card h2 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+.item-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.75rem 1.5rem;
+}
+.item-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.field-label {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.field-value {
+    color: #333;
+}
+
+/* Item actions row */
+.item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Container badge */
+.container-badge {
+    background: #3498db;
+    color: #fff;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+/* Children section */
+.children-section {
+    margin-top: 1.5rem;
+}
+.children-section h2 {
+    margin-bottom: 0.75rem;
+    color: #2c3e50;
+}
+
+/* Field type badge (values page) */
+.field-type-badge {
+    background: #ecf0f1;
+    color: #7f8c8d;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.4rem;
+}
+
+/* Field instructions hint */
+.field-instructions {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+/* Field block spacing on values page */
+.field-block {
+    border-bottom: 1px solid #ecf0f1;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+.field-block:last-child {
+    border-bottom: none;
+}
+
+/* Delete confirm card (delete page) */
+.delete-confirm-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1.25rem;
+    max-width: 600px;
+}
+.warning-block {
+    background: #fef9e7;
+    border: 1px solid #f39c12;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    color: #856404;
+}
+.danger-block {
+    background: #fdf2f2;
+    border: 1px solid #e74c3c;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+/* ================================================================
+   Responsive — hamburger menu
+   ================================================================ */
+@media (max-width: 768px) {
+    .hamburger-btn {
+        display: block;
+    }
+    .menu-list {
+        display: none;
+        flex-direction: column;
+    }
+    .menu-list.menu-open {
+        display: flex;
+    }
+    nav.menu {
+        position: relative;
+    }
+}
