@@ -53,13 +53,26 @@
     content: "🏷 ";
 }
 
-/* Item detail card */
+/* Item detail card — single unified card wrapping all item sections */
 .item-detail-card {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 2rem;
+    padding: 0;
     margin-bottom: 2rem;
+    overflow: hidden; /* keeps rounded corners on inner sections */
+}
+
+/* Individual sections inside the unified card */
+.item-card-section {
+    padding: 2rem;
+}
+
+/* Thin horizontal rule that visually joins the two sections */
+.item-card-divider {
+    border: none;
+    border-top: 1px solid #ecf0f1;
+    margin: 0;
 }
 
 .item-detail-card h2 {
@@ -77,6 +90,11 @@
 
 .item-detail-field {
     margin-bottom: 0.75rem;
+}
+
+/* Full-width field (e.g. Description) */
+.item-detail-field--full {
+    grid-column: 1 / -1;
 }
 
 .item-detail-field .field-label {
@@ -195,6 +213,10 @@
 @media (max-width: 768px) {
     .item-detail-grid {
         grid-template-columns: 1fr;
+    }
+
+    .item-card-section {
+        padding: 1.25rem;
     }
 
     .item-actions {
