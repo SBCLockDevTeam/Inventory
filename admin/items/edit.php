@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/location_helper.php';
+require_once __DIR__ . '/../../lib/client_helper.php';
 
 $item_id = FormHelper::getGet('id');
 if (!FormHelper::isValidHex10($item_id)) {
@@ -93,7 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Exclude the item itself and all its descendants from the parent dropdown
 $descendants_to_exclude   = LocationHelper::getDescendantCodes($item_id);
 $descendants_to_exclude[] = $item_id;
-$available_containers     = LocationHelper::getAllContainers($descendants_to_exclude);
+$active_client            = ClientHelper::getActiveClient();
+$available_containers     = LocationHelper::getAllContainers($descendants_to_exclude, $active_client ? (int)$active_client['id'] : null);
 
 $breadcrumb = LocationHelper::getLocationBreadcrumb($item_id);
 $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);

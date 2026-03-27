@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/location_helper.php';
+require_once __DIR__ . '/../../lib/client_helper.php';
 
 $errors           = [];
 $success          = false;
@@ -14,6 +15,8 @@ $name             = '';
 $description      = '';
 $is_container     = 0;
 $location_item_id = 'root';
+
+$active_client = ClientHelper::getActiveClient();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $public_code  = FormHelper::getPost('public_code');
@@ -60,10 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // Root item is its own parent; otherwise use the selected container
         $resolved_location = $make_root ? $public_code : $parent_raw;
+        $client_id_val     = $active_client ? (int)$active_client['id'] : null;
 
         $affected = DatabaseHelper::execute(
-            "INSERT INTO items (public_code, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?)",
-            [$public_code, $name, $description, $is_container, $resolved_location]
+            "INSERT INTO items (public_code, name, description, is_container, location_item_id, client_id) VALUES (?, ?, ?, ?, ?, ?)",
+            [$public_code, $name, $description, $is_container, $resolved_location, $client_id_val]
         );
 
         if ($affected > 0) {
@@ -79,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$available_containers = LocationHelper::getAllContainers();
+$available_containers = LocationHelper::getAllContainers([], $active_client ? (int)$active_client['id'] : null);
 ?>
 <!DOCTYPE html>
 <html lang="en">

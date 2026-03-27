@@ -6,6 +6,21 @@
 
 ## Changes
 
+- Replaced brand with Client/User system: "brand" was a theming stub; it is now replaced with proper Clients and Users.
+- Added `clients` and `users` tables to `db/schema.sql`; added `client_id` column to `items` table.
+- Updated `db/seed.sql` with sample clients, users per client, and items linked to clients.
+- Created `lib/client_helper.php`: session-based client and user management (getActiveClient, setActiveClient, getActiveUser, setActiveUser, getAllClients, getAllUsersForClient).
+- Created `set_user.php` AJAX endpoint: sets active client or user in session; user change returns a redirect signal to home page.
+- Created `admin/clients/` pages (index, add, edit, delete) for managing clients.
+- Created `admin/users/` pages (index, add, edit, delete) for managing users (users belong to clients).
+- Updated `templates/common/header.php`: shows "Client — User" label with client and user dropdown selectors.
+- Updated `templates/common/menu.php`: added Clients and Users navigation items.
+- Updated `js/script.js`: client change reloads the page; user change redirects to home page.
+- Updated `index.php` (home page): shows the active client's root items in a table.
+- Updated `admin/items/index.php`: filters items by the active client.
+- Updated `admin/items/add.php`: saves client_id on new items.
+- Updated `css/style.css`: added user-selector header styles, form-group/form-check/form-actions styles.
+
 - Fix AI hallucination: removed `brand_id` column, index, and FK from `items` table in `db/schema.sql`. Brand has no relation to inventory items.
 - Fix AI hallucination: removed `brand_id` from items INSERT statements in `db/seed.sql`; updated item descriptions to not reference brands.
 - Fix AI hallucination: removed brand JOINs and `brand_name` from `LocationHelper::getAllContainers()` and `getDirectChildren()` in `lib/location_helper.php`.

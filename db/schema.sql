@@ -4,7 +4,7 @@
 -- ROOT items are their own parent (location_item_id = public_code); only admin can create root items.
 
 -- ============================================================
--- BRANDS
+-- BRANDS (legacy — retained for backward compatibility)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS brands (
   id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -16,8 +16,39 @@ CREATE TABLE IF NOT EXISTS brands (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- CLIENTS
+-- A client is the top-level owner. Users belong to a client.
+-- Items are scoped to a client via client_id.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS clients (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) NOT NULL UNIQUE,
+  description TEXT NULL,
+  is_default TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- USERS
+-- A user belongs to a client. The header selector shows "Client - User".
+-- Changing the selected user redirects to the home page.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  client_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  is_default TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_users_client
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_users_client_name (client_id, name)
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- ITEMS
--- Brand is NOT stored on items; it is a session-level theming stub only.
+-- Each item is scoped to a client via client_id.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS items (
   public_code CHAR(10) NOT NULL,
@@ -25,13 +56,17 @@ CREATE TABLE IF NOT EXISTS items (
   description TEXT NULL,
   is_container TINYINT(1) NOT NULL DEFAULT 0,
   location_item_id CHAR(10) NOT NULL,
+  client_id BIGINT UNSIGNED NULL,
   primary_image VARCHAR(512) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (public_code),
   KEY idx_items_location (location_item_id),
+  KEY idx_items_client (client_id),
   CONSTRAINT fk_items_location
-    FOREIGN KEY (location_item_id) REFERENCES items(public_code)
+    FOREIGN KEY (location_item_id) REFERENCES items(public_code),
+  CONSTRAINT fk_items_client
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================================
