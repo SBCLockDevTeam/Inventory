@@ -84,7 +84,6 @@ $all_sigs       = FieldHelper::getAllSignatures($item_id);
         <!-- Action buttons -->
         <div class="item-actions">
             <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo $item['public_code']; ?>" class="btn btn-primary">Edit Item</a>
-            <a href="<?php echo BASE_PATH; ?>/admin/items/values.php?id=<?php echo $item['public_code']; ?>" class="btn btn-primary">Fill Values</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Manage Fields</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/clone.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Clone Item</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-danger">Delete Item</a>
@@ -129,10 +128,7 @@ $all_sigs       = FieldHelper::getAllSignatures($item_id);
             <?php if (!empty($fields)): ?>
             <hr class="item-card-divider">
             <div class="item-card-section field-values-section">
-                <h2>Field Values
-                    <a href="<?php echo BASE_PATH; ?>/admin/items/values.php?id=<?php echo $item['public_code']; ?>"
-                       class="btn btn-small btn-secondary" style="margin-left:0.75rem;">Edit Values</a>
-                </h2>
+                <h2>Field Values</h2>
                 <?php foreach ($fields as $field):
                     $fid   = (int)$field['id'];
                     $ftype = $field['field_type'];
