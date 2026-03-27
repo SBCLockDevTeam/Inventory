@@ -38,6 +38,7 @@ if ($field_id <= 0 || !FormHelper::isValidHex10($item_code)) {
 }
 
 // Verify the field belongs to this item
+// Note: field_id in item_fields is BIGINT UNSIGNED; cast to int is safe for lookup
 $field = DatabaseHelper::queryOne(
     "SELECT id, allow_multiple FROM item_fields WHERE id = ? AND item_public_code = ? AND field_type = 'photo'",
     [$field_id, $item_code]
@@ -46,6 +47,19 @@ if (!$field) {
     http_response_code(404);
     echo json_encode(['success' => false, 'error' => 'Field not found']);
     exit;
+}
+
+// If single-upload, reject if a photo already exists for this field
+if (!$field['allow_multiple']) {
+    $existing_count = DatabaseHelper::queryCount(
+        "SELECT COUNT(*) AS count FROM item_images WHERE item_public_code = ? AND field_id = ?",
+        [$item_code, $field_id]
+    );
+    if ($existing_count > 0) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'error' => 'A photo already exists for this field. Delete it first.']);
+        exit;
+    }
 }
 
 // Check file was actually uploaded
@@ -58,7 +72,7 @@ if (empty($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
 
 $file = $_FILES['photo'];
 
-// Allow only image MIME types
+// Allow only image MIME types — validated against actual file content, not client header
 $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 $finfo        = finfo_open(FILEINFO_MIME_TYPE);
 $mime         = finfo_file($finfo, $file['tmp_name']);
@@ -78,9 +92,14 @@ if ($file['size'] > 10 * 1024 * 1024) {
 }
 
 // Build the upload directory on the server
+// SERVER_ROOT has no trailing slash; append the full sub-path
 $upload_server_dir = SERVER_ROOT . '/uploads/photos/' . $item_code . '/';
 if (!is_dir($upload_server_dir)) {
-    mkdir($upload_server_dir, 0755, true);
+    if (!mkdir($upload_server_dir, 0755, true)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Could not create upload directory']);
+        exit;
+    }
 }
 
 // Derive extension from the validated MIME type (never trust client filename)
@@ -101,6 +120,7 @@ if (!move_uploaded_file($file['tmp_name'], $dest)) {
 }
 
 // Store the URL-relative path (so the web server can serve it)
+// BASE_PATH has no trailing slash, e.g. /qr
 $url_path = BASE_PATH . '/uploads/photos/' . $item_code . '/' . $filename;
 
 $image_id = FieldHelper::savePhoto($item_code, $field_id, $url_path);
