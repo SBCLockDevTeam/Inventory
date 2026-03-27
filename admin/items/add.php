@@ -2,8 +2,10 @@
 /**
  * Create New Item
  */
+require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
+require_once __DIR__ . '/../../lib/location_helper.php';
 
 $errors = [];
 $success = false;
@@ -12,18 +14,29 @@ $name = '';
 $description = '';
 $is_container = 0;
 $brand_id = 1;
+$location_item_id = 'root';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $public_code = FormHelper::getPost('public_code');
-    $name = FormHelper::getPost('name');
-    $description = FormHelper::getPost('description');
+    $public_code  = FormHelper::getPost('public_code');
+    $name         = FormHelper::getPost('name');
+    $description  = FormHelper::getPost('description');
     $is_container = isset($_POST['is_container']) ? 1 : 0;
-    $brand_id = (int)FormHelper::getPost('brand_id', 1);
+    $brand_id     = (int)FormHelper::getPost('brand_id', 1);
+
+    $parent_raw       = FormHelper::getPost('location_item_id');
+    $make_root        = ($parent_raw === '' || $parent_raw === 'root');
+    $location_item_id = $parent_raw;
 
     if (!FormHelper::isRequired($public_code)) {
         $errors[] = 'Item ID is required';
     } elseif (!FormHelper::isValidHex10($public_code)) {
         $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
+    } else {
+        // Ensure the ID is not already taken
+        $existing = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$public_code]);
+        if ($existing) {
+            $errors[] = 'Item ID already exists. Please choose a different ID.';
+        }
     }
 
     if (!FormHelper::isRequired($name)) {
@@ -38,25 +51,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Brand selection is required';
     }
 
+    if (!$make_root) {
+        // Verify parent exists and is a container
+        $parent = DatabaseHelper::queryOne(
+            "SELECT public_code, is_container FROM items WHERE public_code = ?",
+            [$parent_raw]
+        );
+        if (!$parent) {
+            $errors[] = 'Selected parent location does not exist';
+        } elseif (!$parent['is_container']) {
+            $errors[] = 'Selected parent location is not a container';
+        }
+    }
+
     if (empty($errors)) {
-        $location_item_id = $public_code;
+        // Root item is its own parent; otherwise use the selected container
+        $resolved_location = $make_root ? $public_code : $parent_raw;
+
         $sql = "INSERT INTO items (public_code, brand_id, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?, ?)";
-        $affected = DatabaseHelper::execute($sql, [$public_code, $brand_id, $name, $description, $is_container, $location_item_id], 'isssii');
+        $affected = DatabaseHelper::execute($sql, [$public_code, $brand_id, $name, $description, $is_container, $resolved_location]);
 
         if ($affected > 0) {
             $success = true;
-            $public_code = '';
-            $name = '';
-            $description = '';
-            $is_container = 0;
-            $brand_id = 1;
+            $public_code      = '';
+            $name             = '';
+            $description      = '';
+            $is_container     = 0;
+            $brand_id         = 1;
+            $location_item_id = 'root';
         } else {
             $errors[] = 'Database insert failed: ' . DatabaseHelper::getLastError();
         }
     }
 }
 
-$brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", []);
+$brands              = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", []);
+$available_containers = LocationHelper::getAllContainers();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,8 +94,9 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create New Item</title>
-    <link rel="stylesheet" href="/qr/css/style.css">
-    <link rel="stylesheet" href="/qr/css/components/form.css">
+    <link rel="stylesheet" href="<?php echo CSS_PATH; ?>style.css">
+    <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/form.css">
+    <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/location.css">
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
@@ -113,9 +144,28 @@ $brands = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", 
                     <span>This item is a container (can hold other items)</span>
                 </label>
             </div>
+            <div class="form-group">
+                <label for="location_item_id">Parent Location</label>
+                <select id="location_item_id" name="location_item_id">
+                    <option value="root" <?php echo ($location_item_id === 'root') ? 'selected' : ''; ?>>
+                        — No parent (Root item) —
+                    </option>
+                    <?php foreach ($available_containers as $container): ?>
+                        <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
+                            <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
+                            [<?php echo htmlspecialchars($container['brand_name'] ?? '?'); ?>]
+                            <?php echo htmlspecialchars($container['name']); ?>
+                            (<?php echo htmlspecialchars($container['public_code']); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="location-selector-hint">
+                    Choose the container this item will live in, or leave as Root for a top-level item.
+                </small>
+            </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create Item</button>
-                <a href="/qr/admin/items/" class="btn btn-secondary">Cancel</a>
+                <a href="<?php echo BASE_PATH; ?>/admin/items/" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
