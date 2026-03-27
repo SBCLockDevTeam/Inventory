@@ -8,6 +8,18 @@
                 <li><a href="<?php echo BASE_PATH; ?>/admin/items/">View Items</a></li>
             </ul>
         </li>
+        <li><a href="<?php echo BASE_PATH; ?>/admin/clients/">Clients</a>
+            <ul class="submenu">
+                <li><a href="<?php echo BASE_PATH; ?>/admin/clients/add.php">Add Client</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/admin/clients/">View Clients</a></li>
+            </ul>
+        </li>
+        <li><a href="<?php echo BASE_PATH; ?>/admin/users/">Users</a>
+            <ul class="submenu">
+                <li><a href="<?php echo BASE_PATH; ?>/admin/users/add.php">Add User</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/admin/users/">View Users</a></li>
+            </ul>
+        </li>
         <li><a href="#">Reports</a></li>
         <li><a href="#">Settings</a></li>
     </ul>

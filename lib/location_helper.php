@@ -58,32 +58,33 @@ class LocationHelper {
 
     /**
      * Get all container items suitable for use as a parent location.
-     * Optionally exclude a set of public_codes (e.g. the item being edited and its descendants).
+     * Optionally filter by client and exclude a set of public_codes.
      *
-     * @param array $exclude_codes  public_codes to omit from results
-     * @return array                Rows of ['public_code', 'name']
+     * @param array    $exclude_codes  public_codes to omit from results
+     * @param int|null $client_id      If set, only return containers for this client
+     * @return array                   Rows of ['public_code', 'name']
      */
-    public static function getAllContainers($exclude_codes = []) {
-        if (empty($exclude_codes)) {
-            return DatabaseHelper::queryAll(
-                "SELECT public_code, name
-                   FROM items
-                  WHERE is_container = 1
-                  ORDER BY name",
-                []
-            );
+    public static function getAllContainers($exclude_codes = [], $client_id = null) {
+        $where  = ["is_container = 1"];
+        $params = [];
+
+        if ($client_id !== null) {
+            $where[]  = "client_id = ?";
+            $params[] = (int)$client_id;
         }
 
-        // Safely build one placeholder per excluded code
-        $placeholders = implode(',', array_fill(0, count($exclude_codes), '?'));
-        return DatabaseHelper::queryAll(
-            "SELECT public_code, name
-               FROM items
-              WHERE is_container = 1
-                AND public_code NOT IN ($placeholders)
-              ORDER BY name",
-            $exclude_codes
-        );
+        if (!empty($exclude_codes)) {
+            $placeholders = implode(',', array_fill(0, count($exclude_codes), '?'));
+            $where[]  = "public_code NOT IN ($placeholders)";
+            $params   = array_merge($params, $exclude_codes);
+        }
+
+        $sql = "SELECT public_code, name
+                  FROM items
+                 WHERE " . implode(' AND ', $where) . "
+                 ORDER BY name";
+
+        return DatabaseHelper::queryAll($sql, $params);
     }
 
     /**

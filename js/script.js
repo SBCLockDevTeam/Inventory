@@ -1,28 +1,56 @@
-// Brand selector: persist selection via AJAX and reload the page to apply the brand theme.
-// Brand affects only header, footer, and page styling — not inventory contents.
+// Client selector: switching client reloads the page.
+// User selector: switching user redirects to the home page.
 document.addEventListener('DOMContentLoaded', function() {
-    var brandSelect = document.getElementById('brand-select');
-    if (brandSelect) {
-        brandSelect.addEventListener('change', function() {
-            var brandId  = this.value;
-            var endpoint = this.dataset.setBrandUrl;
+
+    // Client selector
+    var clientSelect = document.getElementById('client-select');
+    if (clientSelect) {
+        clientSelect.addEventListener('change', function() {
+            var clientId = this.value;
+            var endpoint = this.dataset.setUserUrl;
             if (!endpoint) { return; }
 
             var formData = new FormData();
-            formData.append('brand_id', brandId);
+            formData.append('client_id', clientId);
 
             fetch(endpoint, { method: 'POST', body: formData })
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
                     if (data.success) {
-                        // Reload so the new brand theme is applied to header/footer/styles
                         window.location.reload();
                     } else {
-                        console.error('Brand change failed:', data.error);
+                        console.error('Client change failed:', data.error);
                     }
                 })
                 .catch(function(err) {
-                    console.error('Brand change request failed:', err);
+                    console.error('Client change request failed:', err);
+                });
+        });
+    }
+
+    // User selector: redirect to home page when user changes
+    var userSelect = document.getElementById('user-select');
+    if (userSelect) {
+        userSelect.addEventListener('change', function() {
+            var userId   = this.value;
+            var endpoint = this.dataset.setUserUrl;
+            var homeUrl  = this.dataset.homeUrl;
+            if (!endpoint) { return; }
+
+            var formData = new FormData();
+            formData.append('user_id', userId);
+
+            fetch(endpoint, { method: 'POST', body: formData })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        window.location.href = data.redirect || homeUrl || '/';
+                    } else {
+                        console.error('User change failed:', data.error);
+                    }
+                })
+                .catch(function(err) {
+                    console.error('User change request failed:', err);
                 });
         });
     }
