@@ -1,5 +1,5 @@
 general:
-  root_path: https://SBCQR.com/qr/
+  root_path: https://sbcqr.com/qr/
   apache_document_root: Apache points to /var/www/html/sbcqr/; /qr/ is subdirectory
   server_root_distinct: Server root is https://SBCQR.com/, project root is distinct at /qr/
   all_references: All references to this server shall be https://SBCQR.com/qr/
