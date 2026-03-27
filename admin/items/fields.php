@@ -2,6 +2,7 @@
 /**
  * Manage Dynamic Fields for Item
  */
+require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 
@@ -36,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $field_key = strtolower(str_replace(' ', '_', $label));
-        $sort_order = DatabaseHelper::queryCount("SELECT MAX(sort_order) FROM item_fields WHERE item_public_code = ?", [$item_id]) + 1;
+        $sort_order = DatabaseHelper::queryCount("SELECT MAX(sort_order) AS count FROM item_fields WHERE item_public_code = ?", [$item_id]) + 1;
 
         $sql = "INSERT INTO item_fields (item_public_code, field_key, label, field_type, required, sort_order, allow_multiple, instructions, require_printed_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $affected = DatabaseHelper::execute($sql, [$item_id, $field_key, $label, $field_type, $required, $sort_order, $allow_multiple, $instructions, $require_printed_name]);

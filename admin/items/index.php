@@ -2,6 +2,7 @@
 /**
  * Items List Page
  */
+require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 
