@@ -15,11 +15,9 @@ if (!FormHelper::isValidHex10($item_id)) {
 }
 
 $item = DatabaseHelper::queryOne(
-    "SELECT i.public_code, i.name, i.description, i.is_container,
-            i.location_item_id, i.brand_id, b.name AS brand_name
-       FROM items i
-       LEFT JOIN brands b ON i.brand_id = b.id
-      WHERE i.public_code = ?",
+    "SELECT public_code, name, description, is_container, location_item_id
+       FROM items
+      WHERE public_code = ?",
     [$item_id]
 );
 
@@ -32,22 +30,20 @@ $errors  = [];
 $success = false;
 
 // Seed form fields from existing item
-$name            = $item['name'];
-$description     = $item['description'];
-$is_container    = $item['is_container'];
-$brand_id        = $item['brand_id'];
+$name             = $item['name'];
+$description      = $item['description'];
+$is_container     = $item['is_container'];
 $location_item_id = $item['location_item_id'];
-$is_root         = ($item['location_item_id'] === $item['public_code']);
+$is_root          = ($item['location_item_id'] === $item['public_code']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name         = FormHelper::getPost('name');
     $description  = FormHelper::getPost('description');
     $is_container = isset($_POST['is_container']) ? 1 : 0;
-    $brand_id     = (int)FormHelper::getPost('brand_id', 1);
 
     $new_parent_raw = FormHelper::getPost('location_item_id');
     // Empty string or 'root' means make this a root item (its own parent)
-    $make_root = ($new_parent_raw === '' || $new_parent_raw === 'root');
+    $make_root  = ($new_parent_raw === '' || $new_parent_raw === 'root');
     $new_parent = $make_root ? $item_id : $new_parent_raw;
 
     // Validation
@@ -57,10 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!FormHelper::isRequired($description)) {
         $errors[] = 'Item Description is required';
-    }
-
-    if (!FormHelper::isRequired($brand_id) || $brand_id <= 0) {
-        $errors[] = 'Brand selection is required';
     }
 
     if (!$make_root) {
@@ -83,13 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $sql = "UPDATE items
-                   SET name = ?, description = ?, is_container = ?,
-                       brand_id = ?, location_item_id = ?
-                 WHERE public_code = ?";
         $affected = DatabaseHelper::execute(
-            $sql,
-            [$name, $description, $is_container, $brand_id, $new_parent, $item_id]
+            "UPDATE items SET name = ?, description = ?, is_container = ?, location_item_id = ? WHERE public_code = ?",
+            [$name, $description, $is_container, $new_parent, $item_id]
         );
 
         if ($affected >= 0) {
@@ -107,7 +95,6 @@ $descendants_to_exclude   = LocationHelper::getDescendantCodes($item_id);
 $descendants_to_exclude[] = $item_id;
 $available_containers     = LocationHelper::getAllContainers($descendants_to_exclude);
 
-$brands     = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", []);
 $breadcrumb = LocationHelper::getLocationBreadcrumb($item_id);
 $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 ?>
@@ -169,31 +156,15 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                 <input type="text" value="<?php echo htmlspecialchars($item['public_code']); ?>" disabled>
                 <small>Item ID cannot be changed after creation</small>
             </div>
-
-            <div class="form-group">
-                <label for="brand_id">Brand <span class="required">*</span></label>
-                <select id="brand_id" name="brand_id" required>
-                    <option value="">-- Select Brand --</option>
-                    <?php foreach ($brands as $brand): ?>
-                        <option value="<?php echo $brand['id']; ?>"
-                            <?php echo ($brand_id == $brand['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($brand['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
             <div class="form-group">
                 <label for="name">Item Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name"
                        value="<?php echo htmlspecialchars($name); ?>" required>
             </div>
-
             <div class="form-group">
                 <label for="description">Item Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="5" required><?php echo htmlspecialchars($description); ?></textarea>
             </div>
-
             <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="is_container" name="is_container"
@@ -212,7 +183,6 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo (!$is_root && $location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
-                            [<?php echo htmlspecialchars($container['brand_name'] ?? '?'); ?>]
                             <?php echo htmlspecialchars($container['name']); ?>
                             (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
@@ -232,5 +202,3 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-</body>
-</html>

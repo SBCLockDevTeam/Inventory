@@ -7,13 +7,12 @@ require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/location_helper.php';
 
-$errors = [];
-$success = false;
-$public_code = '';
-$name = '';
-$description = '';
-$is_container = 0;
-$brand_id = 1;
+$errors           = [];
+$success          = false;
+$public_code      = '';
+$name             = '';
+$description      = '';
+$is_container     = 0;
 $location_item_id = 'root';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name         = FormHelper::getPost('name');
     $description  = FormHelper::getPost('description');
     $is_container = isset($_POST['is_container']) ? 1 : 0;
-    $brand_id     = (int)FormHelper::getPost('brand_id', 1);
 
     $parent_raw       = FormHelper::getPost('location_item_id');
     $make_root        = ($parent_raw === '' || $parent_raw === 'root');
@@ -32,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!FormHelper::isValidHex10($public_code)) {
         $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
     } else {
-        // Ensure the ID is not already taken
         $existing = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$public_code]);
         if ($existing) {
             $errors[] = 'Item ID already exists. Please choose a different ID.';
@@ -45,10 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!FormHelper::isRequired($description)) {
         $errors[] = 'Item Description is required';
-    }
-
-    if (!FormHelper::isRequired($brand_id) || $brand_id <= 0) {
-        $errors[] = 'Brand selection is required';
     }
 
     if (!$make_root) {
@@ -68,16 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Root item is its own parent; otherwise use the selected container
         $resolved_location = $make_root ? $public_code : $parent_raw;
 
-        $sql = "INSERT INTO items (public_code, brand_id, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?, ?)";
-        $affected = DatabaseHelper::execute($sql, [$public_code, $brand_id, $name, $description, $is_container, $resolved_location]);
+        $affected = DatabaseHelper::execute(
+            "INSERT INTO items (public_code, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?)",
+            [$public_code, $name, $description, $is_container, $resolved_location]
+        );
 
         if ($affected > 0) {
-            $success = true;
+            $success          = true;
             $public_code      = '';
             $name             = '';
             $description      = '';
             $is_container     = 0;
-            $brand_id         = 1;
             $location_item_id = 'root';
         } else {
             $errors[] = 'Database insert failed: ' . DatabaseHelper::getLastError();
@@ -85,7 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$brands              = DatabaseHelper::queryAll("SELECT id, name FROM brands ORDER BY name", []);
 $available_containers = LocationHelper::getAllContainers();
 ?>
 <!DOCTYPE html>
@@ -102,11 +95,9 @@ $available_containers = LocationHelper::getAllContainers();
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: <?php echo !empty($errors) ? 'block' : 'none'; ?>;">
-        <?php if (!empty($errors)): ?>
-            <?php foreach ($errors as $error): ?>
-                <p class="error"><?php echo htmlspecialchars($error); ?></p>
-            <?php endforeach; ?>
-        <?php endif; ?>
+        <?php foreach ($errors as $error): ?>
+            <p class="error"><?php echo htmlspecialchars($error); ?></p>
+        <?php endforeach; ?>
     </div>
     <?php if ($success): ?>
         <div class="success-banner">
@@ -118,29 +109,25 @@ $available_containers = LocationHelper::getAllContainers();
         <form method="POST" action="" class="form-create-item">
             <div class="form-group">
                 <label for="public_code">Item ID (10 hex digits) <span class="required">*</span></label>
-                <input type="text" id="public_code" name="public_code" maxlength="10" pattern="[0-9a-fA-F]{10}" placeholder="e.g., 1a2b3c4d5e" value="<?php echo htmlspecialchars($public_code); ?>" required>
+                <input type="text" id="public_code" name="public_code" maxlength="10"
+                       pattern="[0-9a-fA-F]{10}" placeholder="e.g., 1a2b3c4d5e"
+                       value="<?php echo htmlspecialchars($public_code); ?>" required>
                 <small>Exactly 10 hexadecimal characters (0-9, a-f, A-F)</small>
             </div>
             <div class="form-group">
-                <label for="brand_id">Brand <span class="required">*</span></label>
-                <select id="brand_id" name="brand_id" required>
-                    <option value="">-- Select Brand --</option>
-                    <?php foreach ($brands as $brand): ?>
-                        <option value="<?php echo $brand['id']; ?>" <?php echo ($brand_id == $brand['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($brand['name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="name">Item Name <span class="required">*</span></label>
-                <input type="text" id="name" name="name" placeholder="Enter item name" value="<?php echo htmlspecialchars($name); ?>" required>
+                <input type="text" id="name" name="name" placeholder="Enter item name"
+                       value="<?php echo htmlspecialchars($name); ?>" required>
             </div>
             <div class="form-group">
                 <label for="description">Item Description <span class="required">*</span></label>
-                <textarea id="description" name="description" placeholder="Enter detailed description" rows="5" required><?php echo htmlspecialchars($description); ?></textarea>
+                <textarea id="description" name="description" placeholder="Enter detailed description"
+                          rows="5" required><?php echo htmlspecialchars($description); ?></textarea>
             </div>
             <div class="form-group">
                 <label class="checkbox-label">
-                    <input type="checkbox" id="is_container" name="is_container" <?php echo ($is_container == 1) ? 'checked' : ''; ?>>
+                    <input type="checkbox" id="is_container" name="is_container"
+                           <?php echo ($is_container == 1) ? 'checked' : ''; ?>>
                     <span>This item is a container (can hold other items)</span>
                 </label>
             </div>
@@ -153,7 +140,6 @@ $available_containers = LocationHelper::getAllContainers();
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
-                            [<?php echo htmlspecialchars($container['brand_name'] ?? '?'); ?>]
                             <?php echo htmlspecialchars($container['name']); ?>
                             (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
@@ -170,5 +156,3 @@ $available_containers = LocationHelper::getAllContainers();
         </form>
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-</body>
-</html>

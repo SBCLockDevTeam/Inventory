@@ -61,16 +61,15 @@ class LocationHelper {
      * Optionally exclude a set of public_codes (e.g. the item being edited and its descendants).
      *
      * @param array $exclude_codes  public_codes to omit from results
-     * @return array                Rows of ['public_code','name','brand_name']
+     * @return array                Rows of ['public_code', 'name']
      */
     public static function getAllContainers($exclude_codes = []) {
         if (empty($exclude_codes)) {
             return DatabaseHelper::queryAll(
-                "SELECT i.public_code, i.name, b.name AS brand_name
-                   FROM items i
-                   LEFT JOIN brands b ON i.brand_id = b.id
-                  WHERE i.is_container = 1
-                  ORDER BY b.name, i.name",
+                "SELECT public_code, name
+                   FROM items
+                  WHERE is_container = 1
+                  ORDER BY name",
                 []
             );
         }
@@ -78,12 +77,11 @@ class LocationHelper {
         // Safely build one placeholder per excluded code
         $placeholders = implode(',', array_fill(0, count($exclude_codes), '?'));
         return DatabaseHelper::queryAll(
-            "SELECT i.public_code, i.name, b.name AS brand_name
-               FROM items i
-               LEFT JOIN brands b ON i.brand_id = b.id
-              WHERE i.is_container = 1
-                AND i.public_code NOT IN ($placeholders)
-              ORDER BY b.name, i.name",
+            "SELECT public_code, name
+               FROM items
+              WHERE is_container = 1
+                AND public_code NOT IN ($placeholders)
+              ORDER BY name",
             $exclude_codes
         );
     }
@@ -125,12 +123,11 @@ class LocationHelper {
      */
     public static function getDirectChildren($parent_id) {
         return DatabaseHelper::queryAll(
-            "SELECT i.public_code, i.name, i.is_container, b.name AS brand_name
-               FROM items i
-               LEFT JOIN brands b ON i.brand_id = b.id
-              WHERE i.location_item_id = ?
-                AND i.public_code != ?
-              ORDER BY i.is_container DESC, i.name",
+            "SELECT public_code, name, is_container
+               FROM items
+              WHERE location_item_id = ?
+                AND public_code != ?
+              ORDER BY is_container DESC, name",
             [$parent_id, $parent_id]
         );
     }

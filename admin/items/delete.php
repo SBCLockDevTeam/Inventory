@@ -16,11 +16,9 @@ if (!FormHelper::isValidHex10($item_id)) {
 }
 
 $item = DatabaseHelper::queryOne(
-    "SELECT i.public_code, i.name, i.description, i.is_container,
-            i.location_item_id, b.name AS brand_name
-       FROM items i
-       LEFT JOIN brands b ON i.brand_id = b.id
-      WHERE i.public_code = ?",
+    "SELECT public_code, name, description, is_container, location_item_id
+       FROM items
+      WHERE public_code = ?",
     [$item_id]
 );
 
@@ -162,7 +160,6 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
                 <p style="margin-top:0.5rem;">
                     <strong><?php echo htmlspecialchars($item['name']); ?></strong>
                     <code>(<?php echo htmlspecialchars($item['public_code']); ?>)</code>
-                    – <?php echo htmlspecialchars($item['brand_name'] ?? ''); ?>
                 </p>
                 <p style="margin-top:0.5rem;">This action cannot be undone. All custom fields and data for this item will also be deleted.</p>
             </div>
@@ -178,5 +175,3 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
         </div>
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-</body>
-</html>

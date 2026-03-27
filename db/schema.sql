@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS brands (
 
 -- ============================================================
 -- ITEMS
+-- Brand is NOT stored on items; it is a session-level theming stub only.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS items (
   public_code CHAR(10) NOT NULL,
-  brand_id BIGINT UNSIGNED NOT NULL,
   name VARCHAR(255) NOT NULL,
   description TEXT NULL,
   is_container TINYINT(1) NOT NULL DEFAULT 0,
@@ -30,9 +30,6 @@ CREATE TABLE IF NOT EXISTS items (
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (public_code),
   KEY idx_items_location (location_item_id),
-  KEY idx_items_brand (brand_id),
-  CONSTRAINT fk_items_brand
-    FOREIGN KEY (brand_id) REFERENCES brands(id),
   CONSTRAINT fk_items_location
     FOREIGN KEY (location_item_id) REFERENCES items(public_code)
 ) ENGINE=InnoDB;
