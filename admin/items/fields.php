@@ -171,8 +171,6 @@ $page_title = 'Manage Fields - ' . htmlspecialchars($item['name']);
         </div>
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-</body>
-</html>
 
 <script>
 document.getElementById('field_type').addEventListener('change', function() {

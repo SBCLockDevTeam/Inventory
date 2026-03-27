@@ -24,5 +24,3 @@ $page_title = 'QR Inventory System';
         <a href="<?php echo BASE_PATH; ?>/admin/items/" class="btn btn-primary">View Items</a>
     </div>
     <?php include __DIR__ . '/templates/common/footer.php'; ?>
-</body>
-</html>

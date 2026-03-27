@@ -14,12 +14,10 @@ if (!FormHelper::isValidHex10($item_id)) {
 }
 
 $item = DatabaseHelper::queryOne(
-    "SELECT i.public_code, i.name, i.description, i.is_container,
-            i.location_item_id, i.primary_image,
-            b.name AS brand_name, i.created_at, i.updated_at
-       FROM items i
-       LEFT JOIN brands b ON i.brand_id = b.id
-      WHERE i.public_code = ?",
+    "SELECT public_code, name, description, is_container,
+            location_item_id, primary_image, created_at, updated_at
+       FROM items
+      WHERE public_code = ?",
     [$item_id]
 );
 
@@ -93,10 +91,6 @@ $is_root    = ($item['location_item_id'] === $item['public_code']);
                     <span class="field-value"><code><?php echo htmlspecialchars($item['public_code']); ?></code></span>
                 </div>
                 <div class="item-detail-field">
-                    <span class="field-label">Brand</span>
-                    <span class="field-value"><?php echo htmlspecialchars($item['brand_name'] ?? '—'); ?></span>
-                </div>
-                <div class="item-detail-field">
                     <span class="field-label">Name</span>
                     <span class="field-value"><?php echo htmlspecialchars($item['name']); ?></span>
                 </div>
@@ -129,7 +123,6 @@ $is_root    = ($item['location_item_id'] === $item['public_code']);
                     <tr>
                         <th>Item ID</th>
                         <th>Name</th>
-                        <th>Brand</th>
                         <th>Type</th>
                         <th>Actions</th>
                     </tr>
@@ -139,7 +132,6 @@ $is_root    = ($item['location_item_id'] === $item['public_code']);
                     <tr>
                         <td><code><?php echo htmlspecialchars($child['public_code']); ?></code></td>
                         <td><?php echo htmlspecialchars($child['name']); ?></td>
-                        <td><?php echo htmlspecialchars($child['brand_name'] ?? '—'); ?></td>
                         <td>
                             <?php if ($child['is_container']): ?>
                                 <span class="container-badge">Container</span>
@@ -163,5 +155,3 @@ $is_root    = ($item['location_item_id'] === $item['public_code']);
 
     </div>
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
-</body>
-</html>
