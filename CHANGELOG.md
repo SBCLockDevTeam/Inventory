@@ -6,6 +6,16 @@
 
 ## Changes
 
+- Fix: Add `is_admin` column to `users` table in `db/schema.sql`; regular users vs admin users are now distinguishable.
+- Fix: Created `db/migrations/001_add_is_admin_to_users.sql` for existing installations to apply the schema change.
+- Fix: Updated `db/seed.sql` to set `is_admin = 1` for Alice, Charlie, and Diana (default users); Bob is a non-admin regular user.
+- Fix: Updated `lib/client_helper.php` — `getActiveUser()` and `getAllUsersForClient()` now include `is_admin` field; added `isActiveUserAdmin()` helper returning bool.
+- Fix: Updated `admin/items/add.php` — regular (non-admin) users no longer see the "No parent (Root item)" option; admin users see it but are also blocked if the client already has a root item (one root per client rule enforced).
+- Fix: Updated `admin/items/edit.php` — regular users cannot promote an item to a root item; admin users are blocked if the client already has a different root item.
+- Fix: Updated `admin/users/add.php` — added `is_admin` checkbox to the create user form.
+- Fix: Updated `admin/users/edit.php` — added `is_admin` checkbox to the edit user form; `is_admin` is persisted on save.
+- Fix: Updated `admin/users/index.php` — added Admin column to the users table so admin status is visible at a glance.
+
 - Replaced brand with Client/User system: "brand" was a theming stub; it is now replaced with proper Clients and Users.
 - Added `clients` and `users` tables to `db/schema.sql`; added `client_id` column to `items` table.
 - Updated `db/seed.sql` with sample clients, users per client, and items linked to clients.

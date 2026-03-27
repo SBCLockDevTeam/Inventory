@@ -107,11 +107,11 @@ class ClientHelper {
      * Get all users belonging to a given client.
      *
      * @param int $client_id
-     * @return array Rows of ['id', 'name', 'is_default', 'client_id']
+     * @return array Rows of ['id', 'name', 'is_default', 'is_admin', 'client_id']
      */
     public static function getAllUsersForClient(int $client_id): array {
         return DatabaseHelper::queryAll(
-            "SELECT id, client_id, name, is_default FROM users WHERE client_id = ? ORDER BY name",
+            "SELECT id, client_id, name, is_default, is_admin FROM users WHERE client_id = ? ORDER BY name",
             [$client_id]
         );
     }
@@ -133,7 +133,7 @@ class ClientHelper {
         $user_id = $_SESSION[self::SESSION_USER_KEY] ?? null;
         if ($user_id !== null) {
             $user = DatabaseHelper::queryOne(
-                "SELECT id, client_id, name, is_default FROM users WHERE id = ? AND client_id = ?",
+                "SELECT id, client_id, name, is_default, is_admin FROM users WHERE id = ? AND client_id = ?",
                 [(int)$user_id, $client_id]
             );
             if ($user) {
@@ -143,13 +143,13 @@ class ClientHelper {
 
         // No valid session user — load the default for this client
         $user = DatabaseHelper::queryOne(
-            "SELECT id, client_id, name, is_default FROM users WHERE client_id = ? AND is_default = 1 LIMIT 1",
+            "SELECT id, client_id, name, is_default, is_admin FROM users WHERE client_id = ? AND is_default = 1 LIMIT 1",
             [$client_id]
         );
 
         if (!$user) {
             $user = DatabaseHelper::queryOne(
-                "SELECT id, client_id, name, is_default FROM users WHERE client_id = ? ORDER BY name LIMIT 1",
+                "SELECT id, client_id, name, is_default, is_admin FROM users WHERE client_id = ? ORDER BY name LIMIT 1",
                 [$client_id]
             );
         }
@@ -159,6 +159,17 @@ class ClientHelper {
         }
 
         return $user ?: null;
+    }
+
+    /**
+     * Return true if the currently active user has admin privileges.
+     * Returns false when no user is selected or the user is not an admin.
+     *
+     * @return bool
+     */
+    public static function isActiveUserAdmin(): bool {
+        $user = self::getActiveUser();
+        return $user && !empty($user['is_admin']);
     }
 
     /**

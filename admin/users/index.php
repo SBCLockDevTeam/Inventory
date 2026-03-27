@@ -13,7 +13,7 @@ $clients = DatabaseHelper::queryAll("SELECT id, name FROM clients ORDER BY name"
 
 if ($client_id > 0) {
     $users = DatabaseHelper::queryAll(
-        "SELECT u.id, u.name, u.is_default, c.name AS client_name, u.client_id
+        "SELECT u.id, u.name, u.is_default, u.is_admin, c.name AS client_name, u.client_id
            FROM users u
            JOIN clients c ON c.id = u.client_id
           WHERE u.client_id = ?
@@ -23,7 +23,7 @@ if ($client_id > 0) {
     $filter_client = DatabaseHelper::queryOne("SELECT id, name FROM clients WHERE id = ?", [$client_id]);
 } else {
     $users = DatabaseHelper::queryAll(
-        "SELECT u.id, u.name, u.is_default, c.name AS client_name, u.client_id
+        "SELECT u.id, u.name, u.is_default, u.is_admin, c.name AS client_name, u.client_id
            FROM users u
            JOIN clients c ON c.id = u.client_id
           ORDER BY c.name, u.name",
@@ -76,6 +76,7 @@ $page_title = 'Users';
                         <th>User Name</th>
                         <th>Client</th>
                         <th>Default</th>
+                        <th>Admin</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -87,6 +88,7 @@ $page_title = 'Users';
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                                 <td><?php echo htmlspecialchars($user['client_name']); ?></td>
                                 <td><?php echo $user['is_default'] ? '✓ Yes' : 'No'; ?></td>
+                                <td><?php echo $user['is_admin'] ? '✓ Yes' : 'No'; ?></td>
                                 <td class="actions">
                                     <a href="<?php echo BASE_PATH; ?>/admin/users/edit.php?id=<?php echo (int)$user['id']; ?>" class="btn btn-small">Edit</a>
                                     <a href="<?php echo BASE_PATH; ?>/admin/users/delete.php?id=<?php echo (int)$user['id']; ?>" class="btn btn-small btn-danger">Delete</a>
@@ -95,7 +97,7 @@ $page_title = 'Users';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="no-results">No users found</td>
+                            <td colspan="6" class="no-results">No users found</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
