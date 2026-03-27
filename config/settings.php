@@ -1,10 +1,4 @@
-<?php // Database connection settings 
-const DB_HOST = 'localhost'; 
-const DB_USER = 'SBCInv'; 
-const DB_PASS = ''; // Load from secrets.php 
-const DB_NAME = 'SBCInv'; 
-
-// URL/Path constants - ALL relative to /qr/ base 
+<?php // URL/Path constants - ALL relative to /qr/ base 
 const BASE_PATH = '/qr';  
 // URL prefix, no trailing slash 
 const BASE_URL = 'https://sbcqr.com/qr';  
