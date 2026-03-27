@@ -14,11 +14,13 @@ INSERT INTO clients (name, description, is_default) VALUES
 ('Client C', 'Third client',  1);
 
 -- Users (each user belongs to a client)
-INSERT INTO users (client_id, name, is_default) VALUES
-((SELECT id FROM clients WHERE name = 'Client A'), 'Alice',   1),
-((SELECT id FROM clients WHERE name = 'Client A'), 'Bob',     0),
-((SELECT id FROM clients WHERE name = 'Client B'), 'Charlie', 1),
-((SELECT id FROM clients WHERE name = 'Client C'), 'Diana',   1);
+-- Alice, Charlie, and Diana are designated admins for their respective clients.
+-- Bob is a regular user and should not be able to create root items.
+INSERT INTO users (client_id, name, is_default, is_admin) VALUES
+((SELECT id FROM clients WHERE name = 'Client A'), 'Alice',   1, 1),
+((SELECT id FROM clients WHERE name = 'Client A'), 'Bob',     0, 0),
+((SELECT id FROM clients WHERE name = 'Client B'), 'Charlie', 1, 1),
+((SELECT id FROM clients WHERE name = 'Client C'), 'Diana',   1, 1);
 
 -- Root items (self-referencing; only admin may create root items)
 -- Each root item is its own parent (location_item_id = public_code)

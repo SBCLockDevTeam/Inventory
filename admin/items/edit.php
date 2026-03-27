@@ -30,6 +30,8 @@ if (!$item) {
 $errors  = [];
 $success = false;
 
+$active_user_is_admin = ClientHelper::isActiveUserAdmin();
+
 // Seed form fields from existing item
 $name             = $item['name'];
 $description      = $item['description'];
@@ -47,6 +49,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $make_root  = ($new_parent_raw === '' || $new_parent_raw === 'root');
     $new_parent = $make_root ? $item_id : $new_parent_raw;
 
+    // Only admins may promote an item to a root item
+    if ($make_root && !$active_user_is_admin) {
+        $errors[] = 'Only admin users may make an item a root item. Please select a parent container.';
+        $make_root  = false;
+        $new_parent = $new_parent_raw;
+    }
+
     // Validation
     if (!FormHelper::isRequired($name)) {
         $errors[] = 'Item Name is required';
@@ -56,7 +65,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Item Description is required';
     }
 
-    if (!$make_root) {
+    if ($make_root) {
+        // If the item is not already a root item, enforce one-root-per-client
+        if (!$is_root) {
+            $active_client_for_check = ClientHelper::getActiveClient();
+            $client_id_check = $active_client_for_check ? (int)$active_client_for_check['id'] : null;
+            if ($client_id_check !== null) {
+                $existing_root = DatabaseHelper::queryOne(
+                    "SELECT public_code FROM items WHERE client_id = ? AND location_item_id = public_code AND public_code != ? LIMIT 1",
+                    [$client_id_check, $item_id]
+                );
+                if ($existing_root) {
+                    $errors[] = 'This client already has a root item (' . htmlspecialchars($existing_root['public_code']) . '). Each client may only have one root item.';
+                }
+            }
+        }
+    } else {
         // Verify parent exists and is a container
         $parent = DatabaseHelper::queryOne(
             "SELECT public_code, is_container FROM items WHERE public_code = ?",
@@ -177,11 +201,13 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 
             <!-- Location / Parent selector -->
             <div class="form-group">
-                <label for="location_item_id">Parent Location</label>
-                <select id="location_item_id" name="location_item_id">
+                <label for="location_item_id">Parent Location <?php echo !$active_user_is_admin ? '<span class="required">*</span>' : ''; ?></label>
+                <select id="location_item_id" name="location_item_id"<?php echo !$active_user_is_admin ? ' required' : ''; ?>>
+                    <?php if ($active_user_is_admin): ?>
                     <option value="root" <?php echo $is_root ? 'selected' : ''; ?>>
                         — No parent (Root item) —
                     </option>
+                    <?php endif; ?>
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo (!$is_root && $location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
@@ -191,8 +217,13 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                     <?php endforeach; ?>
                 </select>
                 <small class="location-selector-hint">
+                    <?php if ($active_user_is_admin): ?>
                     Choose the container this item lives in, or leave as Root to make it a top-level item.
                     The item itself and its descendants are excluded from this list.
+                    <?php else: ?>
+                    Choose the container this item lives in. Only admin users may make an item a root item.
+                    The item itself and its descendants are excluded from this list.
+                    <?php endif; ?>
                 </small>
             </div>
 

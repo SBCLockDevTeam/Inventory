@@ -16,7 +16,8 @@ $description      = '';
 $is_container     = 0;
 $location_item_id = 'root';
 
-$active_client = ClientHelper::getActiveClient();
+$active_client  = ClientHelper::getActiveClient();
+$active_user_is_admin = ClientHelper::isActiveUserAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $public_code  = FormHelper::getPost('public_code');
@@ -27,6 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parent_raw       = FormHelper::getPost('location_item_id');
     $make_root        = ($parent_raw === '' || $parent_raw === 'root');
     $location_item_id = $parent_raw;
+
+    // Only admins may create root items
+    if ($make_root && !$active_user_is_admin) {
+        $errors[] = 'Only admin users may create root items. Please select a parent container.';
+        $make_root = false;
+    }
 
     if (!FormHelper::isRequired($public_code)) {
         $errors[] = 'Item ID is required';
@@ -47,7 +54,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Item Description is required';
     }
 
-    if (!$make_root) {
+    if ($make_root) {
+        // Enforce one root item per client: reject if this client already has a root item
+        $client_id_check = $active_client ? (int)$active_client['id'] : null;
+        if ($client_id_check !== null) {
+            $existing_root = DatabaseHelper::queryOne(
+                "SELECT public_code FROM items WHERE client_id = ? AND location_item_id = public_code LIMIT 1",
+                [$client_id_check]
+            );
+            if ($existing_root) {
+                $errors[] = 'This client already has a root item (' . htmlspecialchars($existing_root['public_code']) . '). Each client may only have one root item.';
+            }
+        }
+    } else {
         // Verify parent exists and is a container
         $parent = DatabaseHelper::queryOne(
             "SELECT public_code, is_container FROM items WHERE public_code = ?",
@@ -136,11 +155,18 @@ $available_containers = LocationHelper::getAllContainers([], $active_client ? (i
                 </label>
             </div>
             <div class="form-group">
-                <label for="location_item_id">Parent Location</label>
-                <select id="location_item_id" name="location_item_id">
+                <label for="location_item_id">Parent Location <?php echo !$active_user_is_admin ? '<span class="required">*</span>' : ''; ?></label>
+                <select id="location_item_id" name="location_item_id"<?php echo !$active_user_is_admin ? ' required' : ''; ?>>
+                    <?php if ($active_user_is_admin): ?>
                     <option value="root" <?php echo ($location_item_id === 'root') ? 'selected' : ''; ?>>
                         — No parent (Root item) —
                     </option>
+                    <?php endif; ?>
+                    <?php if (!$active_user_is_admin && empty($available_containers)): ?>
+                    <option value="" disabled selected>— No containers available —</option>
+                    <?php elseif (!$active_user_is_admin): ?>
+                    <option value="">— Select a parent container —</option>
+                    <?php endif; ?>
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
@@ -150,7 +176,11 @@ $available_containers = LocationHelper::getAllContainers([], $active_client ? (i
                     <?php endforeach; ?>
                 </select>
                 <small class="location-selector-hint">
+                    <?php if ($active_user_is_admin): ?>
                     Choose the container this item will live in, or leave as Root for a top-level item.
+                    <?php else: ?>
+                    Choose the container this item will live in. Only admin users may create root items.
+                    <?php endif; ?>
                 </small>
             </div>
             <div class="form-actions">

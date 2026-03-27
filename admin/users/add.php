@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = FormHelper::getPost('name', '');
     $client_id  = isset($_POST['client_id']) ? (int)$_POST['client_id'] : 0;
     $is_default = isset($_POST['is_default']) ? 1 : 0;
+    $is_admin   = isset($_POST['is_admin'])   ? 1 : 0;
 
     if (!FormHelper::isRequired($name)) {
         $errors[] = 'User name is required.';
@@ -40,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ?", [$client_id]);
         }
         $rows = DatabaseHelper::execute(
-            "INSERT INTO users (client_id, name, is_default) VALUES (?, ?, ?)",
-            [$client_id, $name, $is_default]
+            "INSERT INTO users (client_id, name, is_default, is_admin) VALUES (?, ?, ?, ?)",
+            [$client_id, $name, $is_default, $is_admin]
         );
         if ($rows > 0) {
             header('Location: ' . BASE_PATH . '/admin/users/?client_id=' . $client_id);
@@ -54,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = '';
     $client_id  = $preselect_client;
     $is_default = 0;
+    $is_admin   = 0;
 }
 
 $page_title = 'Add User';
@@ -101,6 +103,11 @@ $page_title = 'Add User';
                 <input type="checkbox" id="is_default" name="is_default" value="1"
                     <?php echo $is_default ? 'checked' : ''; ?>>
                 <label for="is_default">Set as default user for this client</label>
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" id="is_admin" name="is_admin" value="1"
+                    <?php echo $is_admin ? 'checked' : ''; ?>>
+                <label for="is_admin">Admin user (can create and manage root items)</label>
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create User</button>
