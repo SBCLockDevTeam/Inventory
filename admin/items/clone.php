@@ -40,6 +40,11 @@ $errors  = [];
 $success = false;
 $new_code = '';
 
+// Suggest a unique ID when the page first loads (GET request)
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $new_code = DatabaseHelper::generateUniqueCode();
+}
+
 // Pre-populate form with sensible defaults
 $new_name        = $source['name'] . ' (Copy)';
 $new_description = $source['description'] ?? '';
