@@ -74,17 +74,18 @@
             .then(function (resp) { return resp.json(); })
             .then(function (data) {
                 if (data.success) {
-                    window.showError('✓ Sent to printer.', 'notice');
+                    showPrintStatus('✓ Sent to printer.', 'success');
                 } else {
+                    clearPrintStatus();
                     window.showError('✗ ' + (data.error || 'Print failed.'), 'error');
                 }
             })
             .catch(function (err) {
+                clearPrintStatus();
                 window.showError('✗ Request failed: ' + err.message, 'error');
             })
             .finally(function () {
                 printBtn.disabled = false;
-                clearPrintStatus();
             });
         });
 
