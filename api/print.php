@@ -54,11 +54,15 @@ if (!$printer['is_active']) {
     exit;
 }
 
-// Build the ESC/P payload
-// ESC @ initialises the printer, ESC k sets the font, FF ejects the label
-$payload  = "\x1b@";                                     // Initialize printer
-$payload .= "\x1b\x6b\x00";                             // Select font (Roman)
-$payload .= wordwrap($item_name,   LABEL_LINE_WIDTH, "\r\n", true) . "\r\n";
+
+// ESC i a NUL  — switch Brother printer into ESC/P mode (required after power-on)
+// ESC @        — initialise / reset printer
+// ESC k        — select font
+// FF           — form feed / eject label
+$payload  = "\x1b\x69\x61\x00";                         // Brother mode switch (ESC i a NUL)
+$payload .= "\x1b@";                                     // Initialize printer
+$payload .= "\x1b\x6b\x0b";                             // Select font (Letter Gothic Bold)
+
 if (trim($description) !== '') {
     $payload .= wordwrap($description, LABEL_LINE_WIDTH, "\r\n", true) . "\r\n";
 }
