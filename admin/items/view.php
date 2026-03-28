@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/location_helper.php';
 require_once __DIR__ . '/../../lib/field_helper.php';
+require_once __DIR__ . '/../../lib/auth_helper.php';
 
 $item_id = FormHelper::getGet('id');
 if (!FormHelper::isValidHex10($item_id)) {
@@ -37,7 +38,8 @@ $all_photos     = FieldHelper::getAllPhotos($item_id);
 $all_docs       = FieldHelper::getAllDocuments($item_id);
 $all_sigs       = FieldHelper::getAllSignatures($item_id);
 
-// Load active printers for the print-label bar; default printer used as fallback
+// Load active printers for the print-label bar.
+// Priority: (1) user's saved preference, (2) system default, (3) first active printer.
 $printers           = DatabaseHelper::queryAll(
     "SELECT id, name, is_default FROM printers WHERE is_active = 1 ORDER BY sort_order, name",
     []
@@ -52,6 +54,25 @@ foreach ($printers as $p) {
 // Fall back to the first active printer when no default is set
 if ($default_printer_id === 0 && !empty($printers)) {
     $default_printer_id = (int)$printers[0]['id'];
+}
+
+// Override with the authenticated user's saved preference (if set and still active)
+$selected_printer_id = $default_printer_id;
+$auth_user = AuthHelper::getAuthUser();
+if ($auth_user && !empty($auth_user['user_id'])) {
+    $user_pref = DatabaseHelper::queryOne(
+        "SELECT preferred_printer_id FROM users WHERE id = ?",
+        [(int)$auth_user['user_id']]
+    );
+    if ($user_pref && !empty($user_pref['preferred_printer_id'])) {
+        // Confirm the preferred printer is still in the active list
+        foreach ($printers as $p) {
+            if ((int)$p['id'] === (int)$user_pref['preferred_printer_id']) {
+                $selected_printer_id = (int)$user_pref['preferred_printer_id'];
+                break;
+            }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -114,7 +135,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
                     data-default="<?php echo $default_printer_id; ?>">
                 <?php foreach ($printers as $p): ?>
                 <option value="<?php echo (int)$p['id']; ?>"
-                    <?php echo ((int)$p['id'] === $default_printer_id) ? 'selected' : ''; ?>>
+                    <?php echo ((int)$p['id'] === $selected_printer_id) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($p['name']); ?>
                 </option>
                 <?php endforeach; ?>

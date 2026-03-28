@@ -6,6 +6,39 @@
 
 ## Changes
 
+### 2026-03-28 — Printer selection persists per user across sessions
+
+Printer preference is now stored server-side per authenticated user so it
+survives across different browsers and devices.
+
+- **`db/migrations/006_add_preferred_printer_to_users.sql`**: Adds
+  `preferred_printer_id BIGINT UNSIGNED NULL` to `users` with a FK to
+  `printers(id) ON DELETE SET NULL`. Run this migration on the server after
+  pulling.
+- **`db/schema.sql`**: Updated users table definition to include
+  `preferred_printer_id` and the matching foreign key constraint.
+- **`api/set_printer.php`**: New AJAX endpoint (POST `printer_id`). Requires
+  authentication. Validates that the printer exists and is active, then
+  persists the choice in `users.preferred_printer_id`.
+- **`admin/items/view.php`**: Now loads the authenticated user's saved
+  printer preference. Selection priority: (1) user's saved preference,
+  (2) system default (`is_default = 1`), (3) first active printer. The
+  correct option is pre-selected server-side in the dropdown HTML.
+- **`js/pages/print_label.js`**: Removed `localStorage`-based persistence.
+  The initial dropdown value is set by the server. On change, the new
+  selection is saved to the server via `api/set_printer.php` (failure is
+  logged silently as it is non-critical). Print-job logic is unchanged.
+
+**Server setup instructions** (apply after pulling):
+1. Pull the latest code:
+   ```
+   cd /var/www/html/sbcqr/qr && git pull
+   ```
+2. Run the migration to add the preference column:
+   ```
+   mysql -u SBCInv -p SBCInv < /var/www/html/sbcqr/qr/db/migrations/006_add_preferred_printer_to_users.sql
+   ```
+
 ### 2026-03-28 — Printer: simplified connection error message
 
 - **`api/print.php`**: When the printer binary exits non-zero, the verbose stderr (e.g. `Error: could not connect to pierround.com:9102`) is now written to the server error log via `error_log()` instead of being forwarded to the browser. The JSON response always returns the user-friendly message `"Print failed: Could not connect to printer."`.
