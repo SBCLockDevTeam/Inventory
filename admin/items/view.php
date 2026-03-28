@@ -36,6 +36,23 @@ $scalar_values  = FieldHelper::getScalarValues($item_id);
 $all_photos     = FieldHelper::getAllPhotos($item_id);
 $all_docs       = FieldHelper::getAllDocuments($item_id);
 $all_sigs       = FieldHelper::getAllSignatures($item_id);
+
+// Load active printers for the print-label bar; default printer used as fallback
+$printers           = DatabaseHelper::queryAll(
+    "SELECT id, name, is_default FROM printers WHERE is_active = 1 ORDER BY sort_order, name",
+    []
+);
+$default_printer_id = 0;
+foreach ($printers as $p) {
+    if ($p['is_default']) {
+        $default_printer_id = (int)$p['id'];
+        break;
+    }
+}
+// Fall back to the first active printer when no default is set
+if ($default_printer_id === 0 && !empty($printers)) {
+    $default_printer_id = (int)$printers[0]['id'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -47,6 +64,7 @@ $all_sigs       = FieldHelper::getAllSignatures($item_id);
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/table.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/location.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/photo_upload.css">
+    <script src="<?php echo JS_PATH; ?>pages/print_label.js" defer></script>
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
@@ -88,6 +106,30 @@ $all_sigs       = FieldHelper::getAllSignatures($item_id);
             <a href="<?php echo BASE_PATH; ?>/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-danger">Delete Item</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/" class="btn btn-secondary">Back to Items</a>
         </div>
+
+        <!-- Print Label bar -->
+        <?php if (!empty($printers)): ?>
+        <div class="print-bar">
+            <label for="printer-select">Printer:</label>
+            <select id="printer-select"
+                    data-default="<?php echo $default_printer_id; ?>">
+                <?php foreach ($printers as $p): ?>
+                <option value="<?php echo (int)$p['id']; ?>"
+                    <?php echo ((int)$p['id'] === $default_printer_id) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($p['name']); ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+            <button id="btn-print-label"
+                    class="btn btn-secondary"
+                    type="button"
+                    data-item-name="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>"
+                    data-description="<?php echo htmlspecialchars($item['description'] ?? '', ENT_QUOTES); ?>">
+                🖨 Print Label
+            </button>
+            <span id="print-status" class="print-status"></span>
+        </div>
+        <?php endif; ?>
 
         <!-- Unified item card: core details + dynamic field values as one block -->
         <div class="item-detail-card">

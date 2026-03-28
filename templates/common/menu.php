@@ -18,6 +18,7 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
             <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/add.php">Add User</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/">View Users</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/admin/printers/">Printers</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Exceptions Log</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/">General Log</a></li>
                 <li><a href="#" class="menu-item-disabled">Settings</a></li>
