@@ -20,7 +20,7 @@ if (!FormHelper::isValidHex10($item_code)) {
 
 $item = DatabaseHelper::queryOne(
     "SELECT public_code, name, description, is_container,
-            location_item_id, primary_image, created_at, updated_at
+            location_item_id, primary_image, created_at, updated_at, last_seen_at
        FROM items
       WHERE public_code = ?",
     [$item_code]
@@ -29,13 +29,25 @@ $item = DatabaseHelper::queryOne(
 if (!$item) {
     $page_title = 'Item Not Found';
 } else {
-    $page_title     = htmlspecialchars($item['name']);
-    $is_root        = ($item['location_item_id'] === $item['public_code']);
-    $fields         = FieldHelper::getFields($item_code);
-    $scalar_values  = FieldHelper::getScalarValues($item_code);
-    $all_photos     = FieldHelper::getAllPhotos($item_code);
-    $all_docs       = FieldHelper::getAllDocuments($item_code);
-    $all_sigs       = FieldHelper::getAllSignatures($item_code);
+    $page_title    = htmlspecialchars($item['name']);
+    $fields        = FieldHelper::getFields($item_code);
+    $scalar_values = FieldHelper::getScalarValues($item_code);
+    $all_photos    = FieldHelper::getAllPhotos($item_code);
+    $all_docs      = FieldHelper::getAllDocuments($item_code);
+    $all_sigs      = FieldHelper::getAllSignatures($item_code);
+
+    // Record this QR scan as the last time the item was seen.
+    // Re-read the timestamp the DB just wrote so the displayed value
+    // is consistent with what is stored (avoids PHP/DB timezone drift).
+    DatabaseHelper::execute(
+        "UPDATE items SET last_seen_at = NOW() WHERE public_code = ?",
+        [$item_code]
+    );
+    $refreshed = DatabaseHelper::queryOne(
+        "SELECT last_seen_at FROM items WHERE public_code = ?",
+        [$item_code]
+    );
+    $item['last_seen_at'] = $refreshed['last_seen_at'] ?? date('Y-m-d H:i:s');
 }
 ?>
 <!DOCTYPE html>
@@ -55,8 +67,6 @@ if (!$item) {
         <p>No item matched the provided code. Please check your QR label and try again.</p>
         <?php else: ?>
 
-        <h1><?php echo htmlspecialchars($page_title); ?></h1>
-
         <!-- Unified item card: core details + dynamic field values as one block -->
         <div class="item-detail-card">
 
@@ -67,21 +77,17 @@ if (!$item) {
                         <span class="field-label">Name</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['name']); ?></span>
                     </div>
-                    <div class="item-detail-field">
-                        <span class="field-label">Container</span>
-                        <span class="field-value"><?php echo $item['is_container'] ? '✓ Yes' : 'No'; ?></span>
-                    </div>
-                    <div class="item-detail-field">
-                        <span class="field-label">Location Type</span>
-                        <span class="field-value"><?php echo $is_root ? 'Root item' : 'Child item'; ?></span>
+                    <div class="item-detail-field item-detail-field--full">
+                        <span class="field-label">Description</span>
+                        <span class="field-value"><?php echo nl2br(htmlspecialchars($item['description'] ?? '')); ?></span>
                     </div>
                     <div class="item-detail-field">
                         <span class="field-label">Created</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['created_at'] ?? '—'); ?></span>
                     </div>
-                    <div class="item-detail-field item-detail-field--full">
-                        <span class="field-label">Description</span>
-                        <span class="field-value"><?php echo nl2br(htmlspecialchars($item['description'] ?? '')); ?></span>
+                    <div class="item-detail-field">
+                        <span class="field-label">Last Seen</span>
+                        <span class="field-value"><?php echo htmlspecialchars($item['last_seen_at'] ?? '—'); ?></span>
                     </div>
                 </div>
             </div>
@@ -175,6 +181,13 @@ if (!$item) {
             <?php endif; ?>
 
         </div>
+
+        <div class="actions-bottom">
+            <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo htmlspecialchars($item_code); ?>"
+               class="btn btn-primary">Edit</a>
+        </div>
+
         <?php endif; ?>
     </div>
-    <?php include __DIR__ . '/templates/common/footer.php'; ?>
+</body>
+</html>
