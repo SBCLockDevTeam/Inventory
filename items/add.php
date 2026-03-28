@@ -15,6 +15,7 @@ $name         = '';
 $description  = '';
 $is_container = 0;
 $location_item_id = 'root';
+$parent_raw = '';
 
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name             = '';
             $description      = '';
             $is_container     = 0;
-            $location_item_id = 'root';
+            $location_item_id = $parent_raw;
         } else {
             $errors[] = 'Database insert failed: ' . DatabaseHelper::getLastError();
         }
