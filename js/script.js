@@ -38,8 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
         type = type || 'error';
         var errorDiv = document.getElementById('error-messages');
         if (errorDiv) {
-            errorDiv.innerHTML += '<div class="' + type + '">' + message + '</div>';
+            var msgDiv = document.createElement('div');
+            msgDiv.className = type;
+            msgDiv.textContent = message;
+            errorDiv.appendChild(msgDiv);
             errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     };
 

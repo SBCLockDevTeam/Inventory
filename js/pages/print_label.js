@@ -60,6 +60,7 @@
 
             printBtn.disabled = true;
             showPrintStatus('Sending to printer…', 'info');
+            window.clearErrors();
 
             var formData = new FormData();
             formData.append('printer_id',  printerId);
@@ -75,11 +76,11 @@
                 if (data.success) {
                     window.showError('✓ Sent to printer.', 'notice');
                 } else {
-                    window.showError((data.error || 'Print failed.'), 'error');
+                    window.showError('✗ ' + (data.error || 'Print failed.'), 'error');
                 }
             })
             .catch(function (err) {
-                window.showError('Request failed: ' + err.message, 'error');
+                window.showError('✗ Request failed: ' + err.message, 'error');
             })
             .finally(function () {
                 printBtn.disabled = false;
