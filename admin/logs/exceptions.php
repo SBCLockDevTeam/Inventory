@@ -97,7 +97,7 @@ $page_title = 'Exceptions Log';
                             <td style="white-space:nowrap;font-size:0.85rem;"><?php echo htmlspecialchars($log['created_at']); ?></td>
                             <td>
                                 <?php if ($log['item_public_code']): ?>
-                                    <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
+                                    <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
                                         <?php echo htmlspecialchars($log['item_name'] ?? '(Deleted Item)'); ?>
                                     </a>
                                 <?php else: ?>

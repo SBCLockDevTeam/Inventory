@@ -10,7 +10,7 @@ require_once __DIR__ . '/../lib/database.php';
 require_once __DIR__ . '/../lib/tree_helper.php';
 
 $tree       = TreeHelper::buildTree();
-$view_base  = BASE_PATH . '/admin/items/view.php?id=';
+$view_base  = BASE_PATH . '/items/view.php?id=';
 $page_title = 'Items';
 ?>
 <!DOCTYPE html>
@@ -50,7 +50,7 @@ $page_title = 'Items';
         <?php echo TreeHelper::renderTree($tree, $view_base); ?>
 
         <div class="actions-bottom">
-            <a href="<?php echo BASE_PATH; ?>/admin/items/add.php" class="btn btn-primary">+ Create New Item</a>
+            <a href="<?php echo BASE_PATH; ?>/items/add.php" class="btn btn-primary">+ Create New Item</a>
         </div>
 
     </div>

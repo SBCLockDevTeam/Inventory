@@ -184,7 +184,7 @@ if (!$item) {
         </div>
 
         <div class="actions-bottom">
-            <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo htmlspecialchars($item_code); ?>"
+            <a href="<?php echo BASE_PATH; ?>/items/edit.php?id=<?php echo htmlspecialchars($item_code); ?>"
                class="btn btn-primary">Edit</a>
         </div>
 

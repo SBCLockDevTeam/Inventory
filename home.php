@@ -9,7 +9,7 @@ require_once __DIR__ . '/lib/tree_helper.php';
 require_once __DIR__ . '/lib/client_helper.php';
 
 $tree      = TreeHelper::buildTree();
-$view_base = BASE_PATH . '/admin/items/view.php?id=';
+$view_base = BASE_PATH . '/items/view.php?id=';
 
 $page_title = 'QR Inventory System';
 ?>
@@ -49,7 +49,7 @@ $page_title = 'QR Inventory System';
         <?php echo TreeHelper::renderTree($tree, $view_base); ?>
 
         <div class="actions-bottom">
-            <a href="<?php echo BASE_PATH; ?>/admin/items/add.php" class="btn btn-primary">+ Add Item</a>
+            <a href="<?php echo BASE_PATH; ?>/items/add.php" class="btn btn-primary">+ Add Item</a>
         </div>
     </div>
     <?php include __DIR__ . '/templates/common/footer.php'; ?>
