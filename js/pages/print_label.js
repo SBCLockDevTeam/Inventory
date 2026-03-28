@@ -7,7 +7,7 @@
  * - The default printer (is_default = 1) is used when no localStorage
  *   preference exists yet.
  * - The "Print Label" button sends an AJAX POST to /api/print.php and
- *   shows a brief status message.
+ *   shows a brief status message in the #print-status span.
  */
 (function () {
     'use strict';
