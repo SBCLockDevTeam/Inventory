@@ -30,7 +30,7 @@ if ($active_user) {
     <script>/* Application base path for JS use */var BASE_PATH = <?php echo json_encode(BASE_PATH, JSON_HEX_TAG | JSON_HEX_AMP); ?>;</script>
     <div class="header-content">
         <div class="header-logo">
-            <a href="<?php echo BASE_PATH; ?>/home.php" class="header-site-name">QR Inventory</a>
+            <a href="<?php echo BASE_PATH; ?>/items/" class="header-site-name">QR Inventory</a>
         </div>
         <?php if ($active_user): ?>
         <div class="user-avatar-wrap" id="user-avatar-wrap">
