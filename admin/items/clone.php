@@ -97,17 +97,19 @@ $suggested_name = cloneNextUniqueName($_name_base_default, $_name_num_tmp);
 $new_name         = $suggested_name;
 $new_description  = $source['description'] ?? '';
 $new_is_container = $source['is_container'];
-$clone_data       = 0;
-$clone_count      = 1;
+$clone_data         = 0;
+$clone_descendants  = 0;
+$clone_count        = 1;
 $new_parent       = $source['location_item_id'] === $source['public_code'] ? 'root' : $source['location_item_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_code         = FormHelper::getPost('public_code');
     $new_name         = FormHelper::getPost('name');
     $new_description  = FormHelper::getPost('description');
-    $new_is_container = isset($_POST['is_container']) ? 1 : 0;
-    $clone_data       = isset($_POST['clone_data']) ? 1 : 0;
-    $clone_count      = max(1, min(CLONE_COUNT_MAX, (int)(FormHelper::getPost('clone_count') ?: 1)));
+    $new_is_container  = isset($_POST['is_container']) ? 1 : 0;
+    $clone_data        = isset($_POST['clone_data']) ? 1 : 0;
+    $clone_descendants = isset($_POST['clone_descendants']) ? 1 : 0;
+    $clone_count       = max(1, min(CLONE_COUNT_MAX, (int)(FormHelper::getPost('clone_count') ?: 1)));
 
     $parent_raw  = FormHelper::getPost('location_item_id');
     $make_root   = ($parent_raw === '' || $parent_raw === 'root');
@@ -258,6 +260,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Clone ' . ($clone_data ? 'with data' : 'structure only') . ' from ' . $source_id,
                     $user_label
                 );
+
+                // If requested, also clone every descendant of the source item,
+                // preserving the original parent–child relationships beneath the new item.
+                if ($clone_descendants) {
+                    // BFS order guarantees each parent is mapped before its children
+                    $desc_codes = LocationHelper::getDescendantCodes($source_id);
+                    // Map: original public_code → new public_code
+                    $code_map = [$source_id => $item_code];
+
+                    foreach ($desc_codes as $desc_code) {
+                        $desc = DatabaseHelper::queryOne(
+                            "SELECT public_code, name, description, is_container, location_item_id
+                               FROM items WHERE public_code = ?",
+                            [$desc_code]
+                        );
+                        if (!$desc) {
+                            // Descendant record missing mid-transaction; log and skip
+                            FieldHelper::logGeneral(
+                                'clone_warning',
+                                $desc_code,
+                                null,
+                                null,
+                                null,
+                                'Descendant item not found during clone; skipped: ' . $desc_code,
+                                $user_label
+                            );
+                            continue;
+                        }
+
+                        $new_desc_code   = DatabaseHelper::generateUniqueCode();
+                        // Map the original parent to the already-cloned parent
+                        $new_desc_parent = $code_map[$desc['location_item_id']] ?? $item_code;
+
+                        DatabaseHelper::execute(
+                            "INSERT INTO items (public_code, name, description, is_container, location_item_id)
+                             VALUES (?, ?, ?, ?, ?)",
+                            [$new_desc_code, $desc['name'], $desc['description'], $desc['is_container'], $new_desc_parent]
+                        );
+
+                        $code_map[$desc_code] = $new_desc_code;
+
+                        // Clone field definitions (and optionally scalar values)
+                        $desc_fields  = FieldHelper::getFields($desc_code);
+                        $desc_scalars = $clone_data ? FieldHelper::getScalarValues($desc_code) : [];
+
+                        foreach ($desc_fields as $df) {
+                            DatabaseHelper::execute(
+                                "INSERT INTO item_fields
+                                     (item_public_code, field_key, label, field_type, required, sort_order,
+                                      allow_multiple, instructions, require_printed_name)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                [
+                                    $new_desc_code,
+                                    $df['field_key'],
+                                    $df['label'],
+                                    $df['field_type'],
+                                    $df['required'],
+                                    $df['sort_order'],
+                                    $df['allow_multiple'],
+                                    $df['instructions'],
+                                    $df['require_printed_name'],
+                                ]
+                            );
+
+                            if ($clone_data && in_array($df['field_type'], ['text','textarea','number','date','checkbox'])) {
+                                $new_df_id = (int)DatabaseHelper::getLastInsertId();
+                                if ($new_df_id > 0) {
+                                    $src_val = $desc_scalars[$df['id']] ?? null;
+                                    if ($src_val) {
+                                        DatabaseHelper::execute(
+                                            "INSERT INTO item_field_values
+                                                 (item_public_code, field_id, value_text, value_number, value_date, value_bool)
+                                             VALUES (?, ?, ?, ?, ?, ?)",
+                                            [
+                                                $new_desc_code,
+                                                $new_df_id,
+                                                $src_val['value_text'],
+                                                $src_val['value_number'],
+                                                $src_val['value_date'],
+                                                $src_val['value_bool'],
+                                            ]
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        FieldHelper::logGeneral(
+                            'item_cloned',
+                            $new_desc_code,
+                            null,
+                            $desc_code,
+                            $new_desc_code,
+                            'Clone descendant ' . ($clone_data ? 'with data' : 'structure only') . ' from ' . $desc_code,
+                            $user_label
+                        );
+                    }
+                }
             }
 
             DatabaseHelper::commit();
@@ -370,6 +470,15 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
                     <span>Copy field values as well as field definitions</span>
                 </label>
                 <small>When unchecked, only the field structure is copied — values are left blank.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="clone_descendants" value="1"
+                           <?php echo $clone_descendants ? 'checked' : ''; ?>>
+                    <span>Also clone source item's descendants (entire path)</span>
+                </label>
+                <small>When checked, all items nested beneath the source will also be cloned and placed under the new item.</small>
             </div>
 
             <div class="form-group">
