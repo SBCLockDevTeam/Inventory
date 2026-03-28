@@ -5,23 +5,14 @@
 require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
+require_once __DIR__ . '/../../lib/client_helper.php';
 
 $errors  = [];
 $success = false;
 
-// Pre-select client if coming from clients page
-$preselect_client = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
-
-$clients = DatabaseHelper::queryAll("SELECT id, name FROM clients ORDER BY name", []);
-if (empty($clients)) {
-    header('Location: ' . BASE_PATH . '/admin/clients/add.php');
-    exit;
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = FormHelper::getPost('name', '');
     $email      = strtolower(trim(FormHelper::getPost('email', '')));
-    $client_id  = isset($_POST['client_id']) ? (int)$_POST['client_id'] : 0;
     $is_default = isset($_POST['is_default']) ? 1 : 0;
     $is_admin   = isset($_POST['is_admin'])   ? 1 : 0;
 
@@ -31,34 +22,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Email address is not valid.';
     }
-    if ($client_id <= 0) {
-        $errors[] = 'A client must be selected.';
-    } else {
-        $client_exists = DatabaseHelper::queryOne("SELECT id FROM clients WHERE id = ?", [$client_id]);
-        if (!$client_exists) {
-            $errors[] = 'Selected client does not exist.';
-        }
-    }
 
     if (empty($errors)) {
-        if ($is_default) {
-            DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ?", [$client_id]);
-        }
-        $rows = DatabaseHelper::execute(
-            "INSERT INTO users (client_id, name, email, is_default, is_admin) VALUES (?, ?, ?, ?, ?)",
-            [$client_id, $name, $email ?: null, $is_default, $is_admin]
-        );
-        if ($rows > 0) {
-            header('Location: ' . BASE_PATH . '/admin/users/?client_id=' . $client_id);
-            exit;
+        // Resolve the active client for this session
+        $active_client = ClientHelper::getActiveClient();
+        $client_id     = $active_client ? (int)$active_client['id'] : 0;
+
+        if ($client_id <= 0) {
+            $errors[] = 'No active client found. Please ensure a client is configured.';
         } else {
-            $errors[] = 'Failed to create user. The name may already exist for this client.';
+            if ($is_default) {
+                DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ?", [$client_id]);
+            }
+            $rows = DatabaseHelper::execute(
+                "INSERT INTO users (client_id, name, email, is_default, is_admin) VALUES (?, ?, ?, ?, ?)",
+                [$client_id, $name, $email ?: null, $is_default, $is_admin]
+            );
+            if ($rows > 0) {
+                header('Location: ' . BASE_PATH . '/admin/users/');
+                exit;
+            } else {
+                $errors[] = 'Failed to create user. The name may already exist.';
+            }
         }
     }
 } else {
     $name       = '';
     $email      = '';
-    $client_id  = $preselect_client;
     $is_default = 0;
     $is_admin   = 0;
 }
@@ -87,18 +77,6 @@ $page_title = 'Add User';
             </div>
         <?php endif; ?>
         <form method="POST" action="">
-            <div class="form-group">
-                <label for="client_id">Client <span class="required">*</span></label>
-                <select id="client_id" name="client_id" required>
-                    <option value="">— Select Client —</option>
-                    <?php foreach ($clients as $c): ?>
-                        <option value="<?php echo (int)$c['id']; ?>"
-                            <?php echo ($client_id === (int)$c['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($c['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <div class="form-group">
                 <label for="name">User Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" required

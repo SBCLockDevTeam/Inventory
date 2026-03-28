@@ -78,6 +78,122 @@ header {
     font-weight: normal;
 }
 
+/* ================================================================
+   User avatar circle + dropdown (header)
+   ================================================================ */
+.user-avatar-wrap {
+    position: relative;
+}
+
+.user-avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #3498db;
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+
+.user-avatar-circle:hover,
+.user-avatar-circle:focus {
+    background-color: #2980b9;
+    outline: none;
+}
+
+.user-avatar-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+    min-width: 230px;
+    z-index: 600;
+    overflow: hidden;
+}
+
+.user-avatar-dropdown.open {
+    display: block;
+}
+
+.user-avatar-info {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #ecf0f1;
+    background: #f8f9fa;
+}
+
+.user-avatar-fullname {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.user-avatar-email {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    margin-top: 0.1rem;
+    word-break: break-all;
+}
+
+.user-avatar-switch {
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.switch-user-clients {
+    padding: 0.5rem 1rem 0.75rem;
+}
+
+.switch-user-clients select {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #2c3e50;
+}
+
+.user-avatar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-avatar-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    color: #2c3e50;
+    text-decoration: none;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.15s;
+}
+
+.user-avatar-menu-item:hover,
+.user-avatar-menu-item:focus {
+    background-color: #f4f6f8;
+    outline: none;
+}
+
+.user-avatar-menu li a.user-avatar-menu-item {
+    display: block;
+}
+
 /* Legacy brand-selector (retained for backward compat) */
 .brand-selector {
     display: flex;
