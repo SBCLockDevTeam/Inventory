@@ -65,6 +65,19 @@ header {
     font-size: 0.875rem;
 }
 
+/* Authenticated user display in header */
+.auth-user-name {
+    color: #ecf0f1;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.auth-user-email {
+    color: #bdc3c7;
+    font-size: 0.8rem;
+    font-weight: normal;
+}
+
 /* Legacy brand-selector (retained for backward compat) */
 .brand-selector {
     display: flex;

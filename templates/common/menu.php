@@ -13,6 +13,7 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
                 <li><a href="<?php echo BASE_PATH; ?>/admin/items/">View Items</a></li>
             </ul>
         </li>
+        <?php if ($_menu_is_admin): ?>
         <li><a href="<?php echo BASE_PATH; ?>/admin/clients/">Clients</a>
             <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/clients/add.php">Add Client</a></li>
@@ -25,6 +26,7 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/">View Users</a></li>
             </ul>
         </li>
+        <?php endif; ?>
         <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Logs</a>
             <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Exceptions Log</a></li>
@@ -33,6 +35,9 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
                 <?php endif; ?>
             </ul>
         </li>
+        <?php if ($_menu_is_admin): ?>
         <li><a href="#">Settings</a></li>
+        <?php endif; ?>
+        <li><a href="<?php echo BASE_PATH; ?>/auth/logout.php">Logout</a></li>
     </ul>
 </nav>

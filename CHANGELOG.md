@@ -6,6 +6,31 @@
 
 ## Changes
 
+### 2026-03-27 — Microsoft Entra ID authentication
+
+- **Entra ID integration**: Users now authenticate via Microsoft Entra ID (Azure AD) using OAuth 2.0 Authorization Code Flow with PKCE. No Composer dependency — implemented in plain PHP using `stream_context_create` for the token exchange.
+- **New `lib/auth_helper.php`**: Core authentication library. Handles `initiateLogin()` (redirects to Microsoft), `handleCallback()` (exchanges code, resolves local user, writes session), `logout()` (clears session, returns Microsoft SSO logout URL), `requireAuth()` (page guard), and `getAuthUser()` (returns current auth state).
+- **New `auth/login.php`**: Redirect-only page that starts the OAuth flow via `AuthHelper::initiateLogin()`.
+- **New `auth/callback.php`**: OAuth callback handler. Validates the CSRF state token, calls `AuthHelper::handleCallback()`, and redirects on success or renders a plain error page on failure.
+- **New `auth/logout.php`**: Clears the local session and redirects to Microsoft's single sign-out endpoint.
+- **`config/secrets.php.example`**: Added `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, and `ENTRA_CLIENT_SECRET` placeholders with setup instructions.
+- **`lib/client_helper.php`**: Refactored to derive active user and client from the Entra auth session instead of the old manual user-selector session. `getActiveUser()` now returns the authenticated user. `setActiveClient()` is restricted to admin users only. `setActiveUser()` is a no-op when authenticated (prevents impersonation).
+- **`templates/common/header.php`**: Added `AuthHelper::requireAuth()` guard — all pages including this template are now protected. Replaced the old client/user dropdown pair with: a client dropdown (admins only, for switching context) and a static authenticated-user display (name + email).
+- **`templates/common/menu.php`**: Added a Logout link. Clients and Users menu items are now hidden from regular (non-admin) users.
+- **DB schema — `users` table**: Added `email VARCHAR(255) NULL UNIQUE` and `entra_oid VARCHAR(64) NULL UNIQUE` columns. Admin must enter a user's Microsoft email in the user record before they can log in.
+- **`db/migrations/002_add_entra_auth_to_users.sql`**: Migration for existing installations.
+- **`admin/users/add.php` / `edit.php`**: Added email input field (optional, must be a valid email format). Admin enters the user's Microsoft email so they can authenticate via Entra ID.
+- **`admin/users/index.php`**: Added Email column to the users table.
+- **CSS `css/style.css`**: Added `.auth-user-name` and `.auth-user-email` styles for the header user display.
+
+**Server setup instructions** (for the user to apply after pulling):
+1. Register an app in Microsoft Entra ID (Azure portal → Microsoft Entra ID → App registrations → New registration).
+2. Set the redirect URI to `https://sbcqr.com/qr/auth/callback.php` (type: Web).
+3. Create a client secret under Certificates & secrets.
+4. Copy `/config/secrets.php.example` to `/config/secrets.php` and fill in `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`.
+5. Run the DB migration: `mysql -u SBCInv -p SBCInv < /var/www/html/sbcqr/qr/db/migrations/002_add_entra_auth_to_users.sql`
+6. Edit each user via Admin → Users → Edit and enter their Microsoft email address.
+
 ### 2026-03-27 — Phase 2: Core feature completion
 
 - **Dynamic field values**: Created `admin/items/values.php` — users can now enter, view, and update values for all custom field types (text, textarea, number, date, checkbox, photo, document, signature) on any item.

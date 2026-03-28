@@ -20,12 +20,16 @@ if (empty($clients)) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = FormHelper::getPost('name', '');
+    $email      = strtolower(trim(FormHelper::getPost('email', '')));
     $client_id  = isset($_POST['client_id']) ? (int)$_POST['client_id'] : 0;
     $is_default = isset($_POST['is_default']) ? 1 : 0;
     $is_admin   = isset($_POST['is_admin'])   ? 1 : 0;
 
     if (!FormHelper::isRequired($name)) {
         $errors[] = 'User name is required.';
+    }
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Email address is not valid.';
     }
     if ($client_id <= 0) {
         $errors[] = 'A client must be selected.';
@@ -41,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ?", [$client_id]);
         }
         $rows = DatabaseHelper::execute(
-            "INSERT INTO users (client_id, name, is_default, is_admin) VALUES (?, ?, ?, ?)",
-            [$client_id, $name, $is_default, $is_admin]
+            "INSERT INTO users (client_id, name, email, is_default, is_admin) VALUES (?, ?, ?, ?, ?)",
+            [$client_id, $name, $email ?: null, $is_default, $is_admin]
         );
         if ($rows > 0) {
             header('Location: ' . BASE_PATH . '/admin/users/?client_id=' . $client_id);
@@ -53,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else {
     $name       = '';
+    $email      = '';
     $client_id  = $preselect_client;
     $is_default = 0;
     $is_admin   = 0;
@@ -98,6 +103,13 @@ $page_title = 'Add User';
                 <label for="name">User Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" required
                        value="<?php echo htmlspecialchars($name); ?>" maxlength="128">
+            </div>
+            <div class="form-group">
+                <label for="email">Microsoft Email Address</label>
+                <input type="email" id="email" name="email"
+                       value="<?php echo htmlspecialchars($email); ?>" maxlength="255"
+                       placeholder="user@organisation.com">
+                <small>Enter the user's Microsoft / Entra ID email so they can log in.</small>
             </div>
             <div class="form-group form-check">
                 <input type="checkbox" id="is_default" name="is_default" value="1"
