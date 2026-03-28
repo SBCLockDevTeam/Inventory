@@ -69,7 +69,7 @@ class AuthHelper {
         if (!self::isAuthenticated()) {
             self::initSession();
             // Save the originally requested URL for post-login redirect
-            $_SESSION[self::SESSION_RETURN_KEY] = $_SERVER['REQUEST_URI'] ?? (BASE_PATH . '/');
+            $_SESSION[self::SESSION_RETURN_KEY] = $_SERVER['REQUEST_URI'] ?? (BASE_PATH . '/home.php');
             header('Location: ' . BASE_PATH . '/auth/login.php');
             exit;
         }
@@ -180,7 +180,7 @@ class AuthHelper {
             'is_admin'     => (bool)$local_user['is_admin'],
         ];
 
-        $return_url = $_SESSION[self::SESSION_RETURN_KEY] ?? (BASE_PATH . '/');
+        $return_url = $_SESSION[self::SESSION_RETURN_KEY] ?? (BASE_PATH . '/home.php');
         unset($_SESSION[self::SESSION_RETURN_KEY]);
 
         return ['success' => true, 'redirect' => $return_url];

@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../lib/client_helper.php';
 
 // Admin only
 if (!ClientHelper::isActiveUserAdmin()) {
-    header('Location: ' . BASE_PATH . '/');
+    header('Location: ' . BASE_PATH . '/home.php');
     exit;
 }
 
