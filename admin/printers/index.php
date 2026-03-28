@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/client_helper.php';
 
 if (!ClientHelper::isActiveUserAdmin()) {
-    header('Location: ' . BASE_PATH . '/');
+    header('Location: ' . BASE_PATH . '/home.php');
     exit;
 }
 

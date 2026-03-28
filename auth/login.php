@@ -13,7 +13,7 @@ require_once __DIR__ . '/../lib/auth_helper.php';
 
 // Already logged in — send them home
 if (AuthHelper::isAuthenticated()) {
-    header('Location: ' . BASE_PATH . '/');
+    header('Location: ' . BASE_PATH . '/home.php');
     exit;
 }
 

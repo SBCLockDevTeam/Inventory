@@ -136,12 +136,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
 
             <!-- Item details section -->
             <div class="item-card-section">
-                <h2>Item Details</h2>
                 <div class="item-detail-grid">
-                    <div class="item-detail-field">
-                        <span class="field-label">Item ID</span>
-                        <span class="field-value"><code><?php echo htmlspecialchars($item['public_code']); ?></code></span>
-                    </div>
                     <div class="item-detail-field">
                         <span class="field-label">Name</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['name']); ?></span>
@@ -263,7 +258,6 @@ if ($default_printer_id === 0 && !empty($printers)) {
             <table class="children-table">
                 <thead>
                     <tr>
-                        <th>Item ID</th>
                         <th>Name</th>
                         <th>Type</th>
                         <th>Actions</th>
@@ -272,7 +266,6 @@ if ($default_printer_id === 0 && !empty($printers)) {
                 <tbody>
                     <?php foreach ($children as $child): ?>
                     <tr>
-                        <td><code><?php echo htmlspecialchars($child['public_code']); ?></code></td>
                         <td><?php echo htmlspecialchars($child['name']); ?></td>
                         <td>
                             <?php if ($child['is_container']): ?>
