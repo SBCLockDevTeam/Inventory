@@ -167,9 +167,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
 
             <!-- Dynamic field values (read-only summary), joined to the card above -->
             <?php if (!empty($fields)): ?>
-            <hr class="item-card-divider">
             <div class="item-card-section field-values-section">
-                <h2>Field Values</h2>
                 <?php foreach ($fields as $field):
                     $fid   = (int)$field['id'];
                     $ftype = $field['field_type'];
