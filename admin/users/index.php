@@ -27,7 +27,6 @@ $page_title = 'Users';
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
-    <h1>Users</h1>
     <div class="body-content">
         <div class="items-table-wrapper">
             <table class="items-table">

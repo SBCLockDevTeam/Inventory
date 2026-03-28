@@ -30,7 +30,6 @@ $page_title = 'Printers';
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
-    <h1>Printers</h1>
     <div class="body-content">
         <div class="item-actions">
             <a href="<?php echo BASE_PATH; ?>/admin/printers/add.php" class="btn btn-primary">Add Printer</a>

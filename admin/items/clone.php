@@ -415,8 +415,6 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
         </div>
     <?php endif; ?>
 
-    <h1>Clone Item</h1>
-
     <div class="body-content">
         <div class="item-detail-card" style="margin-bottom:1.5rem;">
             <h2>Source Item</h2>

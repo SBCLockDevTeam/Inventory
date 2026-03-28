@@ -76,7 +76,6 @@ $page_title = 'General Log';
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
-    <h1>General Log (Admin)</h1>
     <div class="body-content">
 
         <!-- Filters -->

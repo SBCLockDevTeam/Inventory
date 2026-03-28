@@ -58,7 +58,6 @@ $page_title = 'Add User';
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
-    <h1>Add User</h1>
     <div class="body-content">
         <?php if (!empty($errors)): ?>
             <div class="error-banner">

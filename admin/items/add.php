@@ -136,7 +136,6 @@ if ($location_item_id === 'root' || $location_item_id === '') {
             <p class="success">Item created successfully!</p>
         </div>
     <?php endif; ?>
-    <h1>Create New Item</h1>
     <div class="body-content">
         <form method="POST" action="" class="form-create-item">
             <input type="hidden" name="public_code" value="<?php echo htmlspecialchars($public_code); ?>">

@@ -104,28 +104,18 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
         <?php endforeach; ?>
     </div>
 
-    <h1>Delete Item</h1>
-
     <div class="body-content">
 
         <!-- Location breadcrumb -->
         <?php if (!empty($breadcrumb)): ?>
         <nav class="location-breadcrumb" aria-label="Item location">
             <ul class="breadcrumb-list">
-                <?php foreach ($breadcrumb as $index => $crumb):
-                    $isLast = ($index === count($breadcrumb) - 1);
-                ?>
+                <?php foreach ($breadcrumb as $crumb): ?>
                     <li>
-                        <?php if ($isLast): ?>
-                            <span class="breadcrumb-current <?php echo $crumb['is_container'] ? 'breadcrumb-container-icon' : 'breadcrumb-item-icon'; ?>">
-                                <?php echo htmlspecialchars($crumb['name']); ?>
-                            </span>
-                        <?php else: ?>
-                            <a class="<?php echo $crumb['is_container'] ? 'breadcrumb-container-icon' : 'breadcrumb-item-icon'; ?>"
-                               href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo $crumb['public_code']; ?>">
-                                <?php echo htmlspecialchars($crumb['name']); ?>
-                            </a>
-                        <?php endif; ?>
+                        <a class="<?php echo $crumb['is_container'] ? 'breadcrumb-container-icon' : 'breadcrumb-item-icon'; ?>"
+                           href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo $crumb['public_code']; ?>">
+                            <?php echo htmlspecialchars($crumb['name']); ?>
+                        </a>
                     </li>
                 <?php endforeach; ?>
             </ul>
