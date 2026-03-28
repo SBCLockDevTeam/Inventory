@@ -54,7 +54,7 @@
             var description = printBtn.getAttribute('data-description')  || '';
 
             if (!printerId) {
-                showPrintStatus('Please select a printer first.', 'error');
+                showErrorDivision('Please select a printer first.', 'error');
                 return;
             }
 
@@ -73,16 +73,17 @@
             .then(function (resp) { return resp.json(); })
             .then(function (data) {
                 if (data.success) {
-                    showPrintStatus('✓ Sent to printer.', 'success');
+                    showErrorDivision('✓ Sent to printer.', 'success');
                 } else {
-                    showPrintStatus('✗ ' + (data.error || 'Print failed.'), 'error');
+                    showErrorDivision('✗ ' + (data.error || 'Print failed.'), 'error');
                 }
             })
             .catch(function (err) {
-                showPrintStatus('✗ Request failed: ' + err.message, 'error');
+                showErrorDivision('✗ Request failed: ' + err.message, 'error');
             })
             .finally(function () {
                 printBtn.disabled = false;
+                clearPrintStatus();
             });
         });
 
@@ -90,6 +91,20 @@
             if (!status) { return; }
             status.textContent = msg;
             status.className   = 'print-status print-status--' + type + ' print-status--visible';
+        }
+
+        function clearPrintStatus() {
+            if (!status) { return; }
+            status.textContent = '';
+            status.className   = 'print-status';
+        }
+
+        function showErrorDivision(msg, type) {
+            var errorDiv = document.getElementById('error-division');
+            if (!errorDiv) { return; }
+            errorDiv.textContent = msg;
+            errorDiv.className   = type === 'success' ? 'success-banner' : 'error-banner';
+            errorDiv.style.display = 'block';
         }
     });
 }());

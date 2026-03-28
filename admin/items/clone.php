@@ -373,6 +373,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $source_fields        = FieldHelper::getFields($source_id);
 $available_containers = LocationHelper::getAllContainers([]);
 $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
+
+// Determine whether the source item has any descendants (direct children or deeper)
+$source_child = DatabaseHelper::queryOne(
+    "SELECT 1 FROM items WHERE location_item_id = ? AND public_code != ? LIMIT 1",
+    [$source_id, $source_id]
+);
+$source_has_descendants = !empty($source_child);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -463,6 +470,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
                 <small>When unchecked, only the field structure is copied — values are left blank.</small>
             </div>
 
+            <?php if ($source_has_descendants): ?>
             <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" name="clone_descendants" value="1"
@@ -471,6 +479,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
                 </label>
                 <small>When checked, all items nested beneath the source will also be cloned and placed under the new item.</small>
             </div>
+            <?php endif; ?>
 
             <div class="form-group">
                 <label for="location_item_id">Parent Location <span class="required">*</span></label>
