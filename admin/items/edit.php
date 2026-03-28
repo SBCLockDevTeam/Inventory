@@ -32,7 +32,6 @@ if (!$item) {
 }
 
 $errors  = [];
-$success = false;
 
 $active_user          = ClientHelper::getActiveUser();
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
@@ -158,11 +157,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $success       = true;
-        // Reload scalar values to reflect what was just saved
-        $scalar_values = FieldHelper::getScalarValues($item_id);
-        $user_label    = $active_user ? $active_user['name'] : null;
+        $user_label = $active_user ? $active_user['name'] : null;
         FieldHelper::logGeneral('item_updated', $item_id, null, null, null, null, $user_label);
+        header('Location: ' . BASE_PATH . '/admin/items/view.php?id=' . urlencode($item_id));
+        exit;
     }
 }
 
@@ -198,11 +196,6 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
             <p class="error"><?php echo htmlspecialchars($error); ?></p>
         <?php endforeach; ?>
     </div>
-    <?php if ($success): ?>
-        <div class="success-banner">
-            <p class="success">Item updated successfully!</p>
-        </div>
-    <?php endif; ?>
 
     <h1>Edit Item</h1>
 

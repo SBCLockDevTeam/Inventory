@@ -72,7 +72,7 @@ if (!$item) {
 
             <!-- Core item details -->
             <div class="item-card-section">
-                <div class="item-detail-grid">
+                <div class="item-detail-grid item-detail-grid--single">
                     <div class="item-detail-field">
                         <span class="field-label">Name</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['name']); ?></span>
