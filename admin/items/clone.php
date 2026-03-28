@@ -46,7 +46,7 @@ define('CLONE_COUNT_MAX', 100);
 /**
  * Split a name into its text prefix and trailing integer.
  * "Widget 5" → ["Widget ", 5]
- * "Widget"   → ["Widget", 0]  (no trailing number; 0 means "add 1 next")
+ * "Widget"   → ["Widget ", 0]  (no trailing number; space appended so base."1" = "Widget 1")
  *
  * @param  string $name
  * @return array{0: string, 1: int}  [base_string, trailing_number]
@@ -55,7 +55,7 @@ function cloneParseNameNumber(string $name): array {
     if (preg_match('/^(.*?)(\d+)$/', $name, $m)) {
         return [$m[1], (int)$m[2]];
     }
-    return [$name, 0];
+    return [$name . ' ', 0];
 }
 
 /**
@@ -86,9 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $new_code = DatabaseHelper::generateUniqueCode();
 }
 
-// Compute the suggested next name from the source name
+// Compute the suggested next name from the source name.
+// When the source has no trailing number it will be renamed to base."1" on POST,
+// so the first available clone name begins at base."2" — start the counter at 1.
 [$_name_base_default, $_name_num_default] = cloneParseNameNumber($source['name']);
-$_name_num_tmp = $_name_num_default;
+$_name_num_tmp = $_name_num_default === 0 ? 1 : $_name_num_default;
 $suggested_name = cloneNextUniqueName($_name_base_default, $_name_num_tmp);
 
 // Pre-populate form with sensible defaults
@@ -170,6 +172,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $source_scalars = $clone_data ? FieldHelper::getScalarValues($source_id) : [];
 
             $user_label = $active_user ? $active_user['name'] : null;
+
+            // If the source name has no trailing number, rename it to base."1"
+            // so clones can continue from base."2" onwards.
+            if ($name_num === 0) {
+                DatabaseHelper::execute(
+                    "UPDATE items SET name = ? WHERE public_code = ?",
+                    [$name_base . '1', $source_id]
+                );
+                $name_num = 1;
+            }
 
             for ($i = 0; $i < $clone_count; $i++) {
                 if ($clone_count === 1) {
