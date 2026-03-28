@@ -102,9 +102,10 @@ $exit_code = proc_close($proc);
 
 if ($exit_code !== 0) {
     http_response_code(502);
+    error_log('Printer helper failed: ' . trim($stderr_output));
     echo json_encode([
         'success' => false,
-        'error'   => 'Printer helper failed: ' . trim($stderr_output),
+        'error'   => 'Print failed: Could not connect to printer.',
     ]);
     exit;
 }
