@@ -40,7 +40,7 @@ $page_title = 'Printers';
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>IP Address</th>
+                        <th>Host</th>
                         <th>Port</th>
                         <th>Status</th>
                         <th>Default</th>
@@ -54,7 +54,7 @@ $page_title = 'Printers';
                     <?php foreach ($printers as $printer): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($printer['name']); ?></td>
-                        <td><?php echo htmlspecialchars($printer['ip_address']); ?></td>
+                        <td><?php echo htmlspecialchars($printer['host']); ?></td>
                         <td><?php echo (int)$printer['port']; ?></td>
                         <td><?php echo $printer['is_active'] ? '<span class="status-active">Active</span>' : '<span class="status-inactive">Inactive</span>'; ?></td>
                         <td><?php echo $printer['is_default'] ? '✓' : ''; ?></td>
