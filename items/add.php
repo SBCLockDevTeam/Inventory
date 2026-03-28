@@ -181,3 +181,4 @@ if ($location_item_id === 'root' || $location_item_id === '') {
         </form>
     </div>
     <?php include __DIR__ . '/../templates/common/footer.php'; ?>
+
