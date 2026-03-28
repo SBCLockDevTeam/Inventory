@@ -384,6 +384,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>style.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/form.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/location.css">
+    <script src="<?php echo JS_PATH; ?>script.js" defer></script>
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>

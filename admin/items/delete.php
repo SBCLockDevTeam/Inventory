@@ -93,6 +93,7 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
     <title><?php echo $page_title; ?></title>
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>style.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/location.css">
+    <script src="<?php echo JS_PATH; ?>script.js" defer></script>
 </head>
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>

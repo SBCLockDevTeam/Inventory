@@ -64,6 +64,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/table.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/location.css">
     <link rel="stylesheet" href="<?php echo CSS_PATH; ?>components/photo_upload.css">
+    <script src="<?php echo JS_PATH; ?>script.js" defer></script>
     <script src="<?php echo JS_PATH; ?>pages/print_label.js" defer></script>
 </head>
 <body>

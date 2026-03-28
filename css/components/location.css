@@ -209,6 +209,11 @@
     margin-top: 0.25rem;
 }
 
+/* Single-column override for the public item detail grid */
+.item-detail-grid--single {
+    grid-template-columns: 1fr;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .item-detail-grid {
