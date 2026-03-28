@@ -40,7 +40,7 @@ $page_title = 'Printers';
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Host</th>
+                        <th>Hostname / URL</th>
                         <th>Port</th>
                         <th>Status</th>
                         <th>Default</th>

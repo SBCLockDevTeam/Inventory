@@ -90,7 +90,7 @@ $page_title = 'Add Printer';
                        value="<?php echo htmlspecialchars($name); ?>">
             </div>
             <div class="form-group">
-                <label for="host">Host <span class="required">*</span></label>
+                <label for="host">Hostname or URL <span class="required">*</span></label>
                 <input type="text" id="host" name="host" required maxlength="255"
                        placeholder="e.g. pierround.com or 192.168.1.100"
                        value="<?php echo htmlspecialchars($host); ?>">

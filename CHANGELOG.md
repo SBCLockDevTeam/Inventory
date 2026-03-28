@@ -6,7 +6,30 @@
 
 ## Changes
 
-### 2026-03-28 — Printers table: rename ip_address → host
+### 2026-03-28 — Printer: hostname support via binary helper
+
+- **Root cause**: PHP's `fsockopen()` has had intermittent failures resolving hostnames (e.g. `pierround.com`) in some server configurations. The existing `bin/printer.c` binary used `inet_addr()` which only accepts raw IP addresses, not hostnames.
+- **`bin/printer.c`**: Rewritten to use `getaddrinfo()` for DNS resolution, supporting both hostnames (`pierround.com`) and IP addresses. The binary now reads the raw ESC/P payload from stdin (piped by PHP) instead of sending a hardcoded test message, making it suitable for real label jobs.
+- **`bin/printer`**: Recompiled from the updated source.
+- **`api/print.php`**: Replaced `fsockopen()` TCP call with `proc_open()` invocation of `bin/printer`. PHP builds the ESC/P payload and pipes it to the binary via stdin; the binary handles DNS resolution and the TCP send. Error output from the binary is captured and forwarded in the JSON error response.
+- **`admin/printers/add.php`**: "Host" label updated to "Hostname or URL" for clarity.
+- **`admin/printers/edit.php`**: "Host" label updated to "Hostname or URL"; added the same `placeholder` hint already present in `add.php`.
+- **`admin/printers/index.php`**: "Host" column heading updated to "Hostname / URL".
+
+**Server setup instructions** (apply after pulling):
+1. Pull the latest code:
+   ```
+   cd /var/www/html/sbcqr/qr && git pull
+   ```
+2. Ensure the binary is executable:
+   ```
+   chmod +x /var/www/html/sbcqr/qr/bin/printer
+   ```
+3. Verify the web server user (`www-data`) can execute it:
+   ```
+   ls -la /var/www/html/sbcqr/qr/bin/printer
+   ```
+4. Printer hostnames (e.g. `pierround.com`) can now be set or updated via **Admin → Printers → Edit**.
 
 - **Migration 004 updated** (`db/migrations/004_add_printers.sql`): renamed `ip_address VARCHAR(45)` to `host VARCHAR(255)` so that domain names (e.g. `pierround.com`) and IP addresses are both supported. Seed data updated to use `pierround.com` with ports 9101/9102/9103.
 - **`db/schema.sql`**: added `printers` table definition (was missing from the canonical schema).
