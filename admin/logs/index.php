@@ -120,7 +120,7 @@ $page_title = 'General Log';
                             <td><code><?php echo htmlspecialchars($log['action_type']); ?></code></td>
                             <td>
                                 <?php if ($log['item_public_code']): ?>
-                                    <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
+                                    <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
                                         <?php echo htmlspecialchars($log['item_name'] ?? '(Deleted Item)'); ?>
                                     </a>
                                 <?php else: ?>

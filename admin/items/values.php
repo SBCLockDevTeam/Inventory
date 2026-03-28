@@ -1,15 +1,8 @@
 <?php
 /**
- * Item Field Values – redirects to the unified Edit Item page.
- * Field value editing has been merged into edit.php.
+ * Legacy redirect – this page has moved to /items/.
  */
 require_once __DIR__ . '/../../config/settings.php';
-require_once __DIR__ . '/../../lib/form_helpers.php';
-
-$item_id = FormHelper::getGet('id');
-$target  = FormHelper::isValidHex10($item_id)
-    ? BASE_PATH . '/admin/items/edit.php?id=' . rawurlencode($item_id)
-    : BASE_PATH . '/admin/items/';
-
-header('Location: ' . $target);
+$query = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+header('Location: ' . BASE_PATH . '/items/values.php' . $query, true, 301);
 exit;

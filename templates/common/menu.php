@@ -9,7 +9,7 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
         <li><a href="<?php echo BASE_PATH; ?>/items/">Home</a></li>
         <li><a href="<?php echo BASE_PATH; ?>/items/">Items</a>
             <ul class="submenu">
-                <li><a href="<?php echo BASE_PATH; ?>/admin/items/add.php">Add Item</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/items/add.php">Add Item</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/items/">View Items</a></li>
             </ul>
         </li>

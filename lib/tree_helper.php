@@ -57,7 +57,7 @@ class TreeHelper {
      *
      * @param array  $nodes      Array of tree nodes (from buildTree())
      * @param string $view_base  URL prefix for item view links
-     *                           e.g. BASE_PATH . '/admin/items/view.php?id='
+     *                           e.g. BASE_PATH . '/items/view.php?id='
      * @param int    $depth      Current recursion depth (0 = roots)
      * @return string            HTML string
      */
