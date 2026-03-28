@@ -252,30 +252,25 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 
             <!-- Location / Parent selector -->
             <div class="form-group">
-                <label for="location_item_id">Parent Location <?php echo !$active_user_is_admin ? '<span class="required">*</span>' : ''; ?></label>
-                <select id="location_item_id" name="location_item_id"<?php echo !$active_user_is_admin ? ' required' : ''; ?>>
-                    <?php if ($active_user_is_admin): ?>
-                    <option value="root" <?php echo $is_root ? 'selected' : ''; ?>>
-                        — No parent (Root item) —
-                    </option>
-                    <?php endif; ?>
+                <label for="location_item_id">Parent Location <span class="required">*</span></label>
+                <?php if ($is_root): ?>
+                <input type="hidden" name="location_item_id" value="root">
+                <p class="location-selector-hint">This is the root item and has no parent.</p>
+                <?php else: ?>
+                <select id="location_item_id" name="location_item_id" required>
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
-                            <?php echo (!$is_root && $location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
+                            <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($container['name']); ?>
                             (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
                 <small class="location-selector-hint">
-                    <?php if ($active_user_is_admin): ?>
-                    Choose the container this item lives in, or leave as Root to make it a top-level item.
+                    Choose the container this item lives in.
                     The item itself and its descendants are excluded from this list.
-                    <?php else: ?>
-                    Choose the container this item lives in. Only admin users may make an item a root item.
-                    The item itself and its descendants are excluded from this list.
-                    <?php endif; ?>
                 </small>
+                <?php endif; ?>
             </div>
 
             <!-- ── Section 2: Dynamic field values ─────────────────────── -->

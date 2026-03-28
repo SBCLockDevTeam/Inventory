@@ -104,6 +104,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $available_containers = LocationHelper::getAllContainers([]);
+$root_item = DatabaseHelper::queryOne(
+    "SELECT public_code, name FROM items WHERE location_item_id = public_code ORDER BY public_code LIMIT 1",
+    []
+);
+// Default new items to the root container
+if ($location_item_id === 'root' || $location_item_id === '') {
+    $location_item_id = $root_item ? $root_item['public_code'] : '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,17 +165,10 @@ $available_containers = LocationHelper::getAllContainers([]);
                 </label>
             </div>
             <div class="form-group">
-                <label for="location_item_id">Parent Location <?php echo !$active_user_is_admin ? '<span class="required">*</span>' : ''; ?></label>
-                <select id="location_item_id" name="location_item_id"<?php echo !$active_user_is_admin ? ' required' : ''; ?>>
-                    <?php if ($active_user_is_admin): ?>
-                    <option value="root" <?php echo ($location_item_id === 'root') ? 'selected' : ''; ?>>
-                        — No parent (Root item) —
-                    </option>
-                    <?php endif; ?>
-                    <?php if (!$active_user_is_admin && empty($available_containers)): ?>
+                <label for="location_item_id">Parent Location <span class="required">*</span></label>
+                <select id="location_item_id" name="location_item_id" required>
+                    <?php if (empty($available_containers)): ?>
                     <option value="" disabled selected>— No containers available —</option>
-                    <?php elseif (!$active_user_is_admin): ?>
-                    <option value="">— Select a parent container —</option>
                     <?php endif; ?>
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
@@ -178,11 +179,7 @@ $available_containers = LocationHelper::getAllContainers([]);
                     <?php endforeach; ?>
                 </select>
                 <small class="location-selector-hint">
-                    <?php if ($active_user_is_admin): ?>
-                    Choose the container this item will live in, or leave as Root for a top-level item.
-                    <?php else: ?>
-                    Choose the container this item will live in. Only admin users may create root items.
-                    <?php endif; ?>
+                    Choose the container this item will live in.
                 </small>
             </div>
             <div class="form-actions">
