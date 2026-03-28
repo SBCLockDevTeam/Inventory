@@ -16,6 +16,7 @@ $description  = '';
 $is_container = 0;
 $location_item_id = 'root';
 $parent_raw = '';
+$add_count = 1;
 
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name         = FormHelper::getPost('name');
     $description  = FormHelper::getPost('description');
     $is_container = isset($_POST['is_container']) ? 1 : 0;
+    $add_count    = max(1, min(100, (int)(FormHelper::getPost('add_count') ?: 1)));
 
     $parent_raw       = FormHelper::getPost('location_item_id');
     $make_root        = ($parent_raw === '' || $parent_raw === 'root');
@@ -50,8 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (!FormHelper::isRequired($name)) {
-        $errors[] = 'Item Name is required';
+    if ($add_count === 1) {
+        if (!FormHelper::isRequired($name)) {
+            $errors[] = 'Item Name is required';
+        }
     }
 
     if (!FormHelper::isRequired($description)) {
@@ -81,24 +85,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // Root item is its own parent; otherwise use the selected container
-        $resolved_location = $make_root ? $public_code : $parent_raw;
+        DatabaseHelper::beginTransaction();
+        try {
+            $added_items = [];
+            for ($i = 0; $i < $add_count; $i++) {
+                if ($add_count === 1) {
+                    $item_name = $name;
+                    $item_code = $public_code;
+                } else {
+                    $item_name = $name . ' ' . ($i + 1);
+                    $item_code = DatabaseHelper::generateUniqueCode();
+                }
 
-        $affected = DatabaseHelper::execute(
-            "INSERT INTO items (public_code, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?)",
-            [$public_code, $name, $description, $is_container, $resolved_location]
-        );
+                $resolved_location = $make_root ? $item_code : $parent_raw;
 
-        if ($affected > 0) {
+                DatabaseHelper::execute(
+                    "INSERT INTO items (public_code, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?)",
+                    [$item_code, $item_name, $description, $is_container, $resolved_location]
+                );
+
+                $added_items[] = ['code' => $item_code, 'name' => $item_name];
+            }
+
+            DatabaseHelper::commit();
             $success          = true;
             // Suggest a fresh unique ID ready for the next item
             $public_code      = DatabaseHelper::generateUniqueCode();
             $name             = '';
             $description      = '';
             $is_container     = 0;
+            $add_count        = 1;
             $location_item_id = $parent_raw;
-        } else {
-            $errors[] = 'Database insert failed: ' . DatabaseHelper::getLastError();
+        } catch (Exception $e) {
+            DatabaseHelper::rollback();
+            $errors[] = 'Add failed: ' . $e->getMessage();
         }
     }
 }
@@ -134,16 +154,33 @@ if ($location_item_id === 'root' || $location_item_id === '') {
     </div>
     <?php if ($success): ?>
         <div class="success-banner">
-            <p class="success">Item created successfully!</p>
+            <?php if (count($added_items) === 1): ?>
+                <p>Item added successfully! New item ID: <strong><?php echo htmlspecialchars($added_items[0]['code']); ?></strong></p>
+                <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo htmlspecialchars($added_items[0]['code']); ?>" class="btn btn-primary">View New Item</a>
+            <?php else: ?>
+                <p><?php echo count($added_items); ?> items added successfully!</p>
+                <ul>
+                    <?php foreach ($added_items as $ai): ?>
+                        <li>
+                            <strong><?php echo htmlspecialchars($ai['name']); ?></strong>
+                            (<code><?php echo htmlspecialchars($ai['code']); ?></code>)
+                            — <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo htmlspecialchars($ai['code']); ?>">View</a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
     <div class="body-content">
         <form method="POST" action="" class="form-create-item">
             <input type="hidden" name="public_code" value="<?php echo htmlspecialchars($public_code); ?>">
-            <div class="form-group">
+            <div class="form-group" id="name-group">
                 <label for="name">Item Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" placeholder="Enter item name"
                        value="<?php echo htmlspecialchars($name); ?>" required>
+            </div>
+            <div class="form-group" id="multi-add-note" style="display:none;">
+                <p><small>Names and IDs will be auto-generated for each copy using sequential numbering.</small></p>
             </div>
             <div class="form-group">
                 <label for="description">Item Description <span class="required">*</span></label>
@@ -176,9 +213,32 @@ if ($location_item_id === 'root' || $location_item_id === '') {
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create Item</button>
+                <input type="number" id="add_count" name="add_count"
+                       value="<?php echo (int)$add_count; ?>" min="1" max="100"
+                       style="width:4.5rem; text-align:center;"
+                       title="Number of copies to create">
+                <label for="add_count" style="margin-left:0.25rem;">copies</label>
                 <a href="<?php echo BASE_PATH; ?>/items/" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
-    <?php include __DIR__ . '/../templates/common/footer.php'; ?>
+    <script>
+    (function () {
+        var countInput   = document.getElementById('add_count');
+        var nameGroup    = document.getElementById('name-group');
+        var multiNote    = document.getElementById('multi-add-note');
+        var nameInput    = document.getElementById('name');
 
+        function toggleFields() {
+            var multi = parseInt(countInput.value, 10) > 1;
+            nameGroup.style.display  = multi ? 'none' : '';
+            multiNote.style.display  = multi ? ''     : 'none';
+            nameInput.required       = !multi;
+        }
+
+        countInput.addEventListener('input',  toggleFields);
+        countInput.addEventListener('change', toggleFields);
+        toggleFields();
+    }());
+    </script>
+    <?php include __DIR__ . '/../templates/common/footer.php'; ?>
