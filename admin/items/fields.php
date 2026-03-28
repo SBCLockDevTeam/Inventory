@@ -36,8 +36,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $field_key = strtolower(str_replace(' ', '_', $label));
-        $sort_order = DatabaseHelper::queryCount("SELECT MAX(sort_order) AS count FROM item_fields WHERE item_public_code = ?", [$item_id]) + 1;
+        $base_key   = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', trim($label)));
+        $field_key  = $base_key;
+        $key_suffix = 2;
+        while (DatabaseHelper::queryOne(
+            "SELECT id FROM item_fields WHERE item_public_code = ? AND field_key = ?",
+            [$item_id, $field_key]
+        )) {
+            $field_key = $base_key . '_' . $key_suffix++;
+        }
+
+        $max_sort   = DatabaseHelper::queryOne("SELECT MAX(sort_order) AS max_sort FROM item_fields WHERE item_public_code = ?", [$item_id]);
+        $sort_order = ($max_sort && $max_sort['max_sort'] !== null) ? (int)$max_sort['max_sort'] + 1 : 1;
 
         $sql = "INSERT INTO item_fields (item_public_code, field_key, label, field_type, required, sort_order, allow_multiple, instructions, require_printed_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $affected = DatabaseHelper::execute($sql, [$item_id, $field_key, $label, $field_type, $required, $sort_order, $allow_multiple, $instructions, $require_printed_name]);

@@ -89,3 +89,71 @@
         width: 100%;
     }
 }
+
+/* ----------------------------------------------------------------
+   Field block sort controls (edit item page)
+   ---------------------------------------------------------------- */
+.field-block {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fafafa;
+}
+
+.field-block-controls {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* "Add Field" button section */
+.field-add-section {
+    margin: 1rem 0 1.5rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* ----------------------------------------------------------------
+   Add Field modal overlay
+   ---------------------------------------------------------------- */
+.add-field-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-field-modal-overlay.active {
+    display: flex;
+}
+
+.add-field-modal-dialog {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.add-field-modal-dialog h3 {
+    margin-bottom: 1.25rem;
+    color: #2c3e50;
+}
+
+@media (max-width: 600px) {
+    .add-field-modal-dialog {
+        padding: 1.25rem;
+    }
+    .field-block-controls {
+        justify-content: flex-start;
+    }
+}

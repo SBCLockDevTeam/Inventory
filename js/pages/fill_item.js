@@ -31,9 +31,24 @@ document.addEventListener('DOMContentLoaded', function () {
             allowMultiple:   allowMulti
         });
 
+        // Attach delete handlers to already-rendered photo thumbnails
+        var container = document.getElementById(containerId);
+        if (container) {
+            container.querySelectorAll('.photo-delete-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    deletePrerenderedPhoto(
+                        btn.dataset.imageId,
+                        itemCode,
+                        btn.closest('.photo-thumb-wrap'),
+                        allowMulti,
+                        triggerSel
+                    );
+                });
+            });
+        }
+
         // Hide trigger if single-upload and photo already exists
         if (!allowMulti) {
-            var container = document.getElementById(containerId);
             if (container && container.querySelector('.photo-thumb-wrap')) {
                 var trigger = document.querySelector(triggerSel);
                 if (trigger) { trigger.style.display = 'none'; }
@@ -204,6 +219,31 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('item_code', itemCode);
 
         fetch(basePath + '/api/delete_signature.php', { method: 'POST', body: formData })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    if (wrapEl) { wrapEl.remove(); }
+                    if (!allowMulti) {
+                        var trigger = document.querySelector(triggerSel);
+                        if (trigger) { trigger.style.display = ''; }
+                    }
+                } else {
+                    alert('Delete failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(function (err) { alert('Delete request failed: ' + err); });
+    }
+
+    // ---------------------------------------------------------------
+    // Photo delete helper (for pre-rendered photo thumbnails)
+    // ---------------------------------------------------------------
+    function deletePrerenderedPhoto(imageId, itemCode, wrapEl, allowMulti, triggerSel) {
+        if (!confirm('Remove this photo?')) { return; }
+        var formData = new FormData();
+        formData.append('image_id',  imageId);
+        formData.append('item_code', itemCode);
+
+        fetch(basePath + '/api/delete_photo.php', { method: 'POST', body: formData })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success) {
