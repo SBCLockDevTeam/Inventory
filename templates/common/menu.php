@@ -14,30 +14,15 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
             </ul>
         </li>
         <?php if ($_menu_is_admin): ?>
-        <li><a href="<?php echo BASE_PATH; ?>/admin/clients/">Clients</a>
-            <ul class="submenu">
-                <li><a href="<?php echo BASE_PATH; ?>/admin/clients/add.php">Add Client</a></li>
-                <li><a href="<?php echo BASE_PATH; ?>/admin/clients/">View Clients</a></li>
-            </ul>
-        </li>
-        <li><a href="<?php echo BASE_PATH; ?>/admin/users/">Users</a>
+        <li><a href="#">Admin</a>
             <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/add.php">Add User</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/">View Users</a></li>
-            </ul>
-        </li>
-        <?php endif; ?>
-        <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Logs</a>
-            <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Exceptions Log</a></li>
-                <?php if ($_menu_is_admin): ?>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/">General Log</a></li>
-                <?php endif; ?>
+                <li><a href="#" class="menu-item-disabled">Settings</a></li>
             </ul>
         </li>
-        <?php if ($_menu_is_admin): ?>
-        <li><a href="#">Settings</a></li>
         <?php endif; ?>
-        <li><a href="<?php echo BASE_PATH; ?>/auth/logout.php">Logout</a></li>
     </ul>
 </nav>

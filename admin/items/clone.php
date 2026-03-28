@@ -23,7 +23,7 @@ if (!FormHelper::isValidHex10($source_id)) {
 }
 
 $source = DatabaseHelper::queryOne(
-    "SELECT public_code, name, description, is_container, location_item_id, client_id
+    "SELECT public_code, name, description, is_container, location_item_id
        FROM items WHERE public_code = ?",
     [$source_id]
 );
@@ -32,7 +32,6 @@ if (!$source) {
     exit;
 }
 
-$active_client        = ClientHelper::getActiveClient();
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 $active_user          = ClientHelper::getActiveUser();
 
@@ -89,15 +88,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($make_root) {
-        $client_id_check = $active_client ? (int)$active_client['id'] : null;
-        if ($client_id_check !== null) {
-            $existing_root = DatabaseHelper::queryOne(
-                "SELECT public_code FROM items WHERE client_id = ? AND location_item_id = public_code LIMIT 1",
-                [$client_id_check]
-            );
-            if ($existing_root) {
-                $errors[] = 'This client already has a root item. Each client may only have one root item.';
-            }
+        // Single-tenant: only one root item is allowed site-wide
+        $existing_root = DatabaseHelper::queryOne(
+            "SELECT public_code FROM items WHERE location_item_id = public_code LIMIT 1",
+            []
+        );
+        if ($existing_root) {
+            $errors[] = 'A root item already exists. Only one root item is allowed.';
         }
     } else {
         $parent = DatabaseHelper::queryOne(
@@ -113,15 +110,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $resolved_location = $make_root ? $new_code : $parent_raw;
-        $client_id_val     = $active_client ? (int)$active_client['id'] : null;
 
         DatabaseHelper::beginTransaction();
         try {
-            // Insert the new item
             DatabaseHelper::execute(
-                "INSERT INTO items (public_code, name, description, is_container, location_item_id, client_id)
-                 VALUES (?, ?, ?, ?, ?, ?)",
-                [$new_code, $new_name, $new_description, $new_is_container, $resolved_location, $client_id_val]
+                "INSERT INTO items (public_code, name, description, is_container, location_item_id)
+                 VALUES (?, ?, ?, ?, ?)",
+                [$new_code, $new_name, $new_description, $new_is_container, $resolved_location]
             );
 
             // Copy field definitions from source item
@@ -194,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $source_fields        = FieldHelper::getFields($source_id);
-$available_containers = LocationHelper::getAllContainers([], $active_client ? (int)$active_client['id'] : null);
+$available_containers = LocationHelper::getAllContainers([]);
 $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
 ?>
 <!DOCTYPE html>

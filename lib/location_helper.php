@@ -58,20 +58,14 @@ class LocationHelper {
 
     /**
      * Get all container items suitable for use as a parent location.
-     * Optionally filter by client and exclude a set of public_codes.
+     * Optionally exclude a set of public_codes.
      *
-     * @param array    $exclude_codes  public_codes to omit from results
-     * @param int|null $client_id      If set, only return containers for this client
-     * @return array                   Rows of ['public_code', 'name']
+     * @param array $exclude_codes  public_codes to omit from results
+     * @return array                Rows of ['public_code', 'name']
      */
-    public static function getAllContainers($exclude_codes = [], $client_id = null) {
+    public static function getAllContainers($exclude_codes = []) {
         $where  = ["is_container = 1"];
         $params = [];
-
-        if ($client_id !== null) {
-            $where[]  = "client_id = ?";
-            $params[] = (int)$client_id;
-        }
 
         if (!empty($exclude_codes)) {
             $placeholders = implode(',', array_fill(0, count($exclude_codes), '?'));

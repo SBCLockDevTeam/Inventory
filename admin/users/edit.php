@@ -13,7 +13,7 @@ if ($id <= 0) {
 }
 
 $user = DatabaseHelper::queryOne(
-    "SELECT id, client_id, name, email, is_default, is_admin FROM users WHERE id = ?",
+    "SELECT id, name, email, is_default, is_admin FROM users WHERE id = ?",
     [$id]
 );
 if (!$user) {
@@ -21,13 +21,11 @@ if (!$user) {
     exit;
 }
 
-$clients = DatabaseHelper::queryAll("SELECT id, name FROM clients ORDER BY name", []);
-$errors  = [];
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = FormHelper::getPost('name', '');
     $email      = strtolower(trim(FormHelper::getPost('email', '')));
-    $client_id  = isset($_POST['client_id']) ? (int)$_POST['client_id'] : 0;
     $is_default = isset($_POST['is_default']) ? 1 : 0;
     $is_admin   = isset($_POST['is_admin'])   ? 1 : 0;
 
@@ -37,34 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Email address is not valid.';
     }
-    if ($client_id <= 0) {
-        $errors[] = 'A client must be selected.';
-    } else {
-        $client_exists = DatabaseHelper::queryOne("SELECT id FROM clients WHERE id = ?", [$client_id]);
-        if (!$client_exists) {
-            $errors[] = 'Selected client does not exist.';
-        }
-    }
 
     if (empty($errors)) {
         if ($is_default) {
-            DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ? AND id != ?", [$client_id, $id]);
+            DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE id != ?", [$id]);
         }
         $rows = DatabaseHelper::execute(
-            "UPDATE users SET client_id = ?, name = ?, email = ?, is_default = ?, is_admin = ? WHERE id = ?",
-            [$client_id, $name, $email ?: null, $is_default, $is_admin, $id]
+            "UPDATE users SET name = ?, email = ?, is_default = ?, is_admin = ? WHERE id = ?",
+            [$name, $email ?: null, $is_default, $is_admin, $id]
         );
         if ($rows !== false) {
-            header('Location: ' . BASE_PATH . '/admin/users/?client_id=' . $client_id);
+            header('Location: ' . BASE_PATH . '/admin/users/');
             exit;
         } else {
-            $errors[] = 'Failed to update user. The name may already exist for this client.';
+            $errors[] = 'Failed to update user. The name may already exist.';
         }
     }
 } else {
     $name       = $user['name'];
     $email      = $user['email'] ?? '';
-    $client_id  = (int)$user['client_id'];
     $is_default = (int)$user['is_default'];
     $is_admin   = (int)$user['is_admin'];
 }
@@ -93,18 +82,6 @@ $page_title = 'Edit User';
             </div>
         <?php endif; ?>
         <form method="POST" action="">
-            <div class="form-group">
-                <label for="client_id">Client <span class="required">*</span></label>
-                <select id="client_id" name="client_id" required>
-                    <option value="">— Select Client —</option>
-                    <?php foreach ($clients as $c): ?>
-                        <option value="<?php echo (int)$c['id']; ?>"
-                            <?php echo ($client_id === (int)$c['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($c['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <div class="form-group">
                 <label for="name">User Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" required

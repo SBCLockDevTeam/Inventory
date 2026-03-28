@@ -13,10 +13,7 @@ if ($id <= 0) {
 }
 
 $user = DatabaseHelper::queryOne(
-    "SELECT u.id, u.name, u.client_id, c.name AS client_name
-       FROM users u
-       JOIN clients c ON c.id = u.client_id
-      WHERE u.id = ?",
+    "SELECT id, name FROM users WHERE id = ?",
     [$id]
 );
 if (!$user) {
@@ -35,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $rows = DatabaseHelper::execute("DELETE FROM users WHERE id = ?", [$id]);
         if ($rows > 0) {
-            header('Location: ' . BASE_PATH . '/admin/users/?client_id=' . (int)$user['client_id']);
+            header('Location: ' . BASE_PATH . '/admin/users/');
             exit;
         } else {
             $errors[] = 'Failed to delete user.';
@@ -67,8 +64,7 @@ $page_title = 'Delete User';
             </div>
         <?php endif; ?>
         <div class="item-detail-card">
-            <p>You are about to delete user: <strong><?php echo htmlspecialchars($user['name']); ?></strong>
-               (Client: <?php echo htmlspecialchars($user['client_name']); ?>)</p>
+            <p>You are about to delete user: <strong><?php echo htmlspecialchars($user['name']); ?></strong></p>
         </div>
         <form method="POST" action="">
             <div class="form-group form-check">
@@ -77,7 +73,7 @@ $page_title = 'Delete User';
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-danger">Delete User</button>
-                <a href="<?php echo BASE_PATH; ?>/admin/users/?client_id=<?php echo (int)$user['client_id']; ?>" class="btn btn-secondary">Cancel</a>
+                <a href="<?php echo BASE_PATH; ?>/admin/users/" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>

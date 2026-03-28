@@ -8,15 +8,14 @@ require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/location_helper.php';
 require_once __DIR__ . '/../../lib/client_helper.php';
 
-$errors           = [];
-$success          = false;
-$public_code      = '';
-$name             = '';
-$description      = '';
-$is_container     = 0;
+$errors       = [];
+$success      = false;
+$public_code  = '';
+$name         = '';
+$description  = '';
+$is_container = 0;
 $location_item_id = 'root';
 
-$active_client  = ClientHelper::getActiveClient();
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 
 // Suggest a unique ID when the page first loads (GET request)
@@ -60,16 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($make_root) {
-        // Enforce one root item per client: reject if this client already has a root item
-        $client_id_check = $active_client ? (int)$active_client['id'] : null;
-        if ($client_id_check !== null) {
-            $existing_root = DatabaseHelper::queryOne(
-                "SELECT public_code FROM items WHERE client_id = ? AND location_item_id = public_code LIMIT 1",
-                [$client_id_check]
-            );
-            if ($existing_root) {
-                $errors[] = 'This client already has a root item (' . htmlspecialchars($existing_root['public_code']) . '). Each client may only have one root item.';
-            }
+        // Single-tenant: only one root item is allowed site-wide
+        $existing_root = DatabaseHelper::queryOne(
+            "SELECT public_code FROM items WHERE location_item_id = public_code LIMIT 1",
+            []
+        );
+        if ($existing_root) {
+            $errors[] = 'A root item already exists (' . htmlspecialchars($existing_root['public_code']) . '). Only one root item is allowed.';
         }
     } else {
         // Verify parent exists and is a container
@@ -87,11 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // Root item is its own parent; otherwise use the selected container
         $resolved_location = $make_root ? $public_code : $parent_raw;
-        $client_id_val     = $active_client ? (int)$active_client['id'] : null;
 
         $affected = DatabaseHelper::execute(
-            "INSERT INTO items (public_code, name, description, is_container, location_item_id, client_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [$public_code, $name, $description, $is_container, $resolved_location, $client_id_val]
+            "INSERT INTO items (public_code, name, description, is_container, location_item_id) VALUES (?, ?, ?, ?, ?)",
+            [$public_code, $name, $description, $is_container, $resolved_location]
         );
 
         if ($affected > 0) {
@@ -108,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$available_containers = LocationHelper::getAllContainers([], $active_client ? (int)$active_client['id'] : null);
+$available_containers = LocationHelper::getAllContainers([]);
 ?>
 <!DOCTYPE html>
 <html lang="en">

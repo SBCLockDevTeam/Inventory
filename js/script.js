@@ -1,59 +1,35 @@
-// Client selector: switching client reloads the page.
-// User selector: switching user redirects to the home page.
-// Ask for Changes modal: collects feedback and submits via AJAX.
-// Hamburger menu: toggles the mobile navigation menu.
+// Avatar dropdown toggle, Ask for Changes modal, and hamburger menu.
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Client selector
-    var clientSelect = document.getElementById('client-select');
-    if (clientSelect) {
-        clientSelect.addEventListener('change', function() {
-            var clientId = this.value;
-            var endpoint = this.dataset.setUserUrl;
-            if (!endpoint) { return; }
+    // ---------------------------------------------------------------
+    // User avatar dropdown
+    // ---------------------------------------------------------------
+    var avatarToggle   = document.getElementById('user-avatar-toggle');
+    var avatarDropdown = document.getElementById('user-avatar-dropdown');
 
-            var formData = new FormData();
-            formData.append('client_id', clientId);
-
-            fetch(endpoint, { method: 'POST', body: formData })
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        console.error('Client change failed:', data.error);
-                    }
-                })
-                .catch(function(err) {
-                    console.error('Client change request failed:', err);
-                });
+    if (avatarToggle && avatarDropdown) {
+        avatarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var open = avatarDropdown.classList.toggle('open');
+            avatarToggle.setAttribute('aria-expanded', String(open));
+            avatarDropdown.setAttribute('aria-hidden', String(!open));
         });
-    }
 
-    // User selector: redirect to home page when user changes
-    var userSelect = document.getElementById('user-select');
-    if (userSelect) {
-        userSelect.addEventListener('change', function() {
-            var userId   = this.value;
-            var endpoint = this.dataset.setUserUrl;
-            var homeUrl  = this.dataset.homeUrl;
-            if (!endpoint) { return; }
+        document.addEventListener('click', function(e) {
+            if (!avatarDropdown.contains(e.target) && e.target !== avatarToggle) {
+                avatarDropdown.classList.remove('open');
+                avatarToggle.setAttribute('aria-expanded', 'false');
+                avatarDropdown.setAttribute('aria-hidden', 'true');
+            }
+        });
 
-            var formData = new FormData();
-            formData.append('user_id', userId);
-
-            fetch(endpoint, { method: 'POST', body: formData })
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        window.location.href = data.redirect || homeUrl || '/';
-                    } else {
-                        console.error('User change failed:', data.error);
-                    }
-                })
-                .catch(function(err) {
-                    console.error('User change request failed:', err);
-                });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && avatarDropdown.classList.contains('open')) {
+                avatarDropdown.classList.remove('open');
+                avatarToggle.setAttribute('aria-expanded', 'false');
+                avatarDropdown.setAttribute('aria-hidden', 'true');
+                avatarToggle.focus();
+            }
         });
     }
 
