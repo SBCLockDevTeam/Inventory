@@ -13,7 +13,7 @@ $clients = DatabaseHelper::queryAll("SELECT id, name FROM clients ORDER BY name"
 
 if ($client_id > 0) {
     $users = DatabaseHelper::queryAll(
-        "SELECT u.id, u.name, u.is_default, u.is_admin, c.name AS client_name, u.client_id
+        "SELECT u.id, u.name, u.email, u.is_default, u.is_admin, c.name AS client_name, u.client_id
            FROM users u
            JOIN clients c ON c.id = u.client_id
           WHERE u.client_id = ?
@@ -23,7 +23,7 @@ if ($client_id > 0) {
     $filter_client = DatabaseHelper::queryOne("SELECT id, name FROM clients WHERE id = ?", [$client_id]);
 } else {
     $users = DatabaseHelper::queryAll(
-        "SELECT u.id, u.name, u.is_default, u.is_admin, c.name AS client_name, u.client_id
+        "SELECT u.id, u.name, u.email, u.is_default, u.is_admin, c.name AS client_name, u.client_id
            FROM users u
            JOIN clients c ON c.id = u.client_id
           ORDER BY c.name, u.name",
@@ -74,6 +74,7 @@ $page_title = 'Users';
                     <tr>
                         <th>ID</th>
                         <th>User Name</th>
+                        <th>Email</th>
                         <th>Client</th>
                         <th>Default</th>
                         <th>Admin</th>
@@ -86,6 +87,7 @@ $page_title = 'Users';
                             <tr>
                                 <td><?php echo (int)$user['id']; ?></td>
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
+                                <td><?php echo htmlspecialchars($user['email'] ?? ''); ?></td>
                                 <td><?php echo htmlspecialchars($user['client_name']); ?></td>
                                 <td><?php echo $user['is_default'] ? '✓ Yes' : 'No'; ?></td>
                                 <td><?php echo $user['is_admin'] ? '✓ Yes' : 'No'; ?></td>
@@ -97,7 +99,7 @@ $page_title = 'Users';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="no-results">No users found</td>
+                            <td colspan="7" class="no-results">No users found</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

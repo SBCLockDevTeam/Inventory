@@ -38,13 +38,17 @@ CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   client_id BIGINT UNSIGNED NOT NULL,
   name VARCHAR(128) NOT NULL,
+  email VARCHAR(255) NULL,
+  entra_oid VARCHAR(64) NULL,
   is_default TINYINT(1) NOT NULL DEFAULT 0,
   is_admin TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_users_client
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-  UNIQUE KEY uq_users_client_name (client_id, name)
+  UNIQUE KEY uq_users_client_name (client_id, name),
+  UNIQUE KEY uq_users_email (email),
+  UNIQUE KEY uq_users_entra_oid (entra_oid)
 ) ENGINE=InnoDB;
 
 -- ============================================================

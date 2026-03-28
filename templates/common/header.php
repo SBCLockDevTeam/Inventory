@@ -1,21 +1,28 @@
 <?php
 /**
  * Common page header template.
- * Renders the site header with client and user selectors.
- * The header displays "Client Name - User Name".
- * Changing the user redirects to the home page.
+ *
+ * Enforces authentication via Microsoft Entra ID.
+ * Displays "Client Name — User Name" using the authenticated session.
+ * Admin users see a client-selector dropdown so they can switch clients.
+ * Regular users see their assigned client name only (no dropdown).
  */
 require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
+require_once __DIR__ . '/../../lib/auth_helper.php';
 require_once __DIR__ . '/../../lib/client_helper.php';
+
+// Every page that includes this header requires authentication
+AuthHelper::requireAuth();
 
 $page_title      = $page_title ?? 'QR Inventory System';
 $active_client   = ClientHelper::getActiveClient();
 $active_user     = ClientHelper::getActiveUser();
-$all_clients     = ClientHelper::getAllClients();
+$is_admin        = ClientHelper::isActiveUserAdmin();
 $active_client_id = $active_client ? (int)$active_client['id'] : 0;
-$active_user_id   = $active_user   ? (int)$active_user['id']   : 0;
-$all_users        = $active_client ? ClientHelper::getAllUsersForClient($active_client_id) : [];
+
+// Admins see all clients; regular users stay locked to their own client
+$all_clients = $is_admin ? ClientHelper::getAllClients() : [];
 
 $header_label = '';
 if ($active_client) {
@@ -34,7 +41,7 @@ if ($active_client) {
             </a>
         </div>
         <div class="user-selector">
-            <?php if (!empty($all_clients)): ?>
+            <?php if ($is_admin && !empty($all_clients)): ?>
             <label for="client-select">Client:</label>
             <select id="client-select"
                     name="client_id"
@@ -48,19 +55,13 @@ if ($active_client) {
             </select>
             <?php endif; ?>
 
-            <?php if (!empty($all_users)): ?>
-            <label for="user-select">User:</label>
-            <select id="user-select"
-                    name="user_id"
-                    data-set-user-url="<?php echo BASE_PATH; ?>/set_user.php"
-                    data-home-url="<?php echo BASE_PATH; ?>/">
-                <?php foreach ($all_users as $u): ?>
-                    <option value="<?php echo (int)$u['id']; ?>"
-                        <?php echo ($active_user_id === (int)$u['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($u['name']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+            <?php if ($active_user): ?>
+            <span class="auth-user-name">
+                <?php echo htmlspecialchars($active_user['name']); ?>
+                <?php if (!empty($active_user['email'])): ?>
+                <span class="auth-user-email">(<?php echo htmlspecialchars($active_user['email']); ?>)</span>
+                <?php endif; ?>
+            </span>
             <?php endif; ?>
         </div>
     </div>
