@@ -43,11 +43,13 @@ $total_pages = max(1, (int)ceil($total_rows / $per_page));
 
 $limit_params = array_merge($params, [$per_page, $offset]);
 $logs = DatabaseHelper::queryAll(
-    "SELECT id, user_identifier, action_type, item_public_code,
-            field_id, value_before, value_after, notes, created_at
-       FROM general_log
+    "SELECT gl.id, gl.user_identifier, gl.action_type, gl.item_public_code,
+            gl.field_id, gl.value_before, gl.value_after, gl.notes, gl.created_at,
+            i.name AS item_name
+       FROM general_log gl
+       LEFT JOIN items i ON i.public_code = gl.item_public_code
       $where_sql
-      ORDER BY created_at DESC
+      ORDER BY gl.created_at DESC
       LIMIT ? OFFSET ?",
     $limit_params
 );
@@ -79,10 +81,7 @@ $page_title = 'General Log';
 
         <!-- Filters -->
         <form method="GET" action="" class="filter-form" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
-            <div class="form-group" style="margin:0;">
-                <input type="text" name="item_code" placeholder="Filter by Item ID"
-                       value="<?php echo htmlspecialchars($filter_item); ?>">
-            </div>
+            <input type="hidden" name="item_code" value="<?php echo htmlspecialchars($filter_item); ?>">
             <div class="form-group" style="margin:0;">
                 <select name="action_type">
                     <option value="">— All action types —</option>
@@ -123,7 +122,7 @@ $page_title = 'General Log';
                             <td>
                                 <?php if ($log['item_public_code']): ?>
                                     <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
-                                        <?php echo htmlspecialchars($log['item_public_code']); ?>
+                                        <?php echo htmlspecialchars($log['item_name'] ?? '(Deleted Item)'); ?>
                                     </a>
                                 <?php else: ?>
                                     —

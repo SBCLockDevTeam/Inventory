@@ -143,13 +143,12 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
                         Because this is a root item, each child will become its own root item after deletion.
                     <?php else: ?>
                         All child items will be moved up to the parent location
-                        (<strong><?php echo htmlspecialchars($item['location_item_id']); ?></strong>)
                         before this item is deleted.
                     <?php endif; ?>
                 </p>
                 <ul style="margin-top:0.5rem; padding-left:1.5rem;">
                     <?php foreach ($children as $child): ?>
-                        <li><?php echo htmlspecialchars($child['name']); ?> <code>(<?php echo htmlspecialchars($child['public_code']); ?>)</code></li>
+                        <li><?php echo htmlspecialchars($child['name']); ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -160,7 +159,6 @@ $page_title = 'Delete Item – ' . htmlspecialchars($item['name']);
                 <strong>🗑 You are about to permanently delete:</strong>
                 <p style="margin-top:0.5rem;">
                     <strong><?php echo htmlspecialchars($item['name']); ?></strong>
-                    <code>(<?php echo htmlspecialchars($item['public_code']); ?>)</code>
                 </p>
                 <p style="margin-top:0.5rem;">This action cannot be undone. All custom fields and data for this item will also be deleted.</p>
             </div>

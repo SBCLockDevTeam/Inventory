@@ -40,8 +40,10 @@ $total_pages = max(1, (int)ceil($total_rows / $per_page));
 
 $limit_params = array_merge($params, [$per_page, $offset]);
 $logs = DatabaseHelper::queryAll(
-    "SELECT e.id, e.item_public_code, e.event_summary, e.created_at
+    "SELECT e.id, e.item_public_code, e.event_summary, e.created_at,
+            i.name AS item_name
        FROM exceptions_log e
+       LEFT JOIN items i ON i.public_code = e.item_public_code
       $where_sql
       ORDER BY e.created_at DESC
       LIMIT ? OFFSET ?",
@@ -74,14 +76,9 @@ $page_title = 'Exceptions Log';
         </p>
 
         <!-- Filter by item -->
-        <form method="GET" action="" class="filter-form" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
-            <div class="form-group" style="margin:0;">
-                <input type="text" name="item_code" placeholder="Filter by Item ID"
-                       value="<?php echo htmlspecialchars($filter_item); ?>">
-            </div>
-            <button type="submit" class="btn btn-primary">Filter</button>
-            <a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php" class="btn btn-secondary">Clear</a>
-        </form>
+        <?php if (!empty($filter_item)): ?>
+        <p><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php" class="btn btn-secondary">Clear Filter</a></p>
+        <?php endif; ?>
 
         <p style="color:#7f8c8d;font-size:0.875rem;"><?php echo number_format($total_rows); ?> event<?php echo $total_rows !== 1 ? 's' : ''; ?> found.</p>
 
@@ -102,7 +99,7 @@ $page_title = 'Exceptions Log';
                             <td>
                                 <?php if ($log['item_public_code']): ?>
                                     <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($log['item_public_code']); ?>">
-                                        <?php echo htmlspecialchars($log['item_public_code']); ?>
+                                        <?php echo htmlspecialchars($log['item_name'] ?? '(Deleted Item)'); ?>
                                     </a>
                                 <?php else: ?>
                                     —

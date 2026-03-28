@@ -16,7 +16,7 @@ if (!FormHelper::isValidHex10($item_id)) {
 
 $item = DatabaseHelper::queryOne(
     "SELECT public_code, name, description, is_container,
-            location_item_id, primary_image, created_at, updated_at
+            location_item_id, primary_image, created_at, updated_at, last_seen_at
        FROM items
       WHERE public_code = ?",
     [$item_id]
@@ -153,6 +153,10 @@ if ($default_printer_id === 0 && !empty($printers)) {
                     <div class="item-detail-field">
                         <span class="field-label">Created</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['created_at'] ?? '—'); ?></span>
+                    </div>
+                    <div class="item-detail-field">
+                        <span class="field-label">Last Seen</span>
+                        <span class="field-value"><?php echo htmlspecialchars($item['last_seen_at'] ?? '—'); ?></span>
                     </div>
                     <div class="item-detail-field item-detail-field--full">
                         <span class="field-label">Description</span>
