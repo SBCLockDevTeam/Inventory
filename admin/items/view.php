@@ -70,7 +70,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
 <body>
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
-    <div id="error-division" class="error-banner" style="display: none;"></div>
+    <?php include __DIR__ . '/../../templates/common/error_division.php'; ?>
 
     <div class="body-content">
 

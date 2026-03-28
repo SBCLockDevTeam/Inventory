@@ -216,10 +216,6 @@ nav.menu {
 
 /* Error Division */
 .error-division {
-    background-color: #e74c3c;
-    color: #fff;
-    padding: 1rem;
-    text-align: center;
     display: none;
 }
 
@@ -229,6 +225,14 @@ nav.menu {
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 4px;
+}
+
+.error {
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin: 0.25rem 0;
 }
 
 .warning {
@@ -241,6 +245,10 @@ nav.menu {
 
 .notice {
     background-color: #27ae60;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin: 0.25rem 0;
 }
 
 .success-banner {
