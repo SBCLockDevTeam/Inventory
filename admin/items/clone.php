@@ -8,6 +8,11 @@
  *
  * Photos, documents, and signatures are NOT cloned (they are physical files and
  * would need separate handling; users can upload new ones).
+ *
+ * Supports cloning multiple copies at once via the clone_count field.
+ * Names are auto-incremented: if the source name ends in a number that number is
+ * incremented for each copy; otherwise "1" is appended and then incremented.
+ * If the generated name already exists in the DB the number is bumped again.
  */
 require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
@@ -35,21 +40,64 @@ if (!$source) {
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
 $active_user          = ClientHelper::getActiveUser();
 
-$errors  = [];
-$success = false;
-$new_code = '';
+/** Maximum number of copies that can be created in a single clone operation. */
+define('CLONE_COUNT_MAX', 100);
+
+/**
+ * Split a name into its text prefix and trailing integer.
+ * "Widget 5" → ["Widget ", 5]
+ * "Widget"   → ["Widget", 0]  (no trailing number; 0 means "add 1 next")
+ *
+ * @param  string $name
+ * @return array{0: string, 1: int}  [base_string, trailing_number]
+ */
+function cloneParseNameNumber(string $name): array {
+    if (preg_match('/^(.*?)(\d+)$/', $name, $m)) {
+        return [$m[1], (int)$m[2]];
+    }
+    return [$name, 0];
+}
+
+/**
+ * Increment $num, then keep incrementing while $base.$num already exists in the DB.
+ * Updates $num by reference and returns the unique candidate name.
+ *
+ * @param  string $base  The fixed prefix of the name.
+ * @param  int    &$num  Current counter; mutated to the next available value.
+ * @return string        The unique name ($base . $num).
+ */
+function cloneNextUniqueName(string $base, int &$num): string {
+    $num++;
+    $candidate = $base . $num;
+    while (DatabaseHelper::queryOne("SELECT public_code FROM items WHERE name = ?", [$candidate])) {
+        $num++;
+        $candidate = $base . $num;
+    }
+    return $candidate;
+}
+
+$errors      = [];
+$success     = false;
+$new_code    = '';
+$cloned_items = []; // [{code, name}] — populated on successful POST
 
 // Suggest a unique ID when the page first loads (GET request)
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $new_code = DatabaseHelper::generateUniqueCode();
 }
 
+// Compute the suggested next name from the source name
+[$_name_base_default, $_name_num_default] = cloneParseNameNumber($source['name']);
+$_name_num_tmp = $_name_num_default;
+$suggested_name = cloneNextUniqueName($_name_base_default, $_name_num_tmp);
+
 // Pre-populate form with sensible defaults
-$new_name        = $source['name'] . ' (Copy)';
-$new_description = $source['description'] ?? '';
+$new_name         = $suggested_name;
+$new_description  = $source['description'] ?? '';
 $new_is_container = $source['is_container'];
-$clone_data      = 0;
-$new_parent      = $source['location_item_id'] === $source['public_code'] ? 'root' : $source['location_item_id'];
+$clone_data       = 0;
+$clone_count      = 1;
+$new_parent       = $source['location_item_id'] === $source['public_code'] ? 'root' : $source['location_item_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_code         = FormHelper::getPost('public_code');
@@ -57,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_description  = FormHelper::getPost('description');
     $new_is_container = isset($_POST['is_container']) ? 1 : 0;
     $clone_data       = isset($_POST['clone_data']) ? 1 : 0;
+    $clone_count      = max(1, min(CLONE_COUNT_MAX, (int)(FormHelper::getPost('clone_count') ?: 1)));
 
     $parent_raw  = FormHelper::getPost('location_item_id');
     $make_root   = ($parent_raw === '' || $parent_raw === 'root');
@@ -67,20 +116,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $make_root = false;
     }
 
-    // Validate new public code
-    if (!FormHelper::isRequired($new_code)) {
-        $errors[] = 'Item ID is required';
-    } elseif (!FormHelper::isValidHex10($new_code)) {
-        $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
-    } else {
-        $exists = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$new_code]);
-        if ($exists) {
-            $errors[] = 'Item ID already exists. Please choose a different ID.';
+    // Validate new public code only for single-clone (multi-clone auto-generates codes)
+    if ($clone_count === 1) {
+        if (!FormHelper::isRequired($new_code)) {
+            $errors[] = 'Item ID is required';
+        } elseif (!FormHelper::isValidHex10($new_code)) {
+            $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
+        } else {
+            $exists = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$new_code]);
+            if ($exists) {
+                $errors[] = 'Item ID already exists. Please choose a different ID.';
+            }
         }
-    }
 
-    if (!FormHelper::isRequired($new_name)) {
-        $errors[] = 'Item Name is required';
+        if (!FormHelper::isRequired($new_name)) {
+            $errors[] = 'Item Name is required';
+        }
     }
 
     if (!FormHelper::isRequired($new_description)) {
@@ -109,77 +160,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $resolved_location = $make_root ? $new_code : $parent_raw;
+        // Prepare name-increment state based on the SOURCE item name
+        [$name_base, $name_num] = cloneParseNameNumber($source['name']);
 
         DatabaseHelper::beginTransaction();
         try {
-            DatabaseHelper::execute(
-                "INSERT INTO items (public_code, name, description, is_container, location_item_id)
-                 VALUES (?, ?, ?, ?, ?)",
-                [$new_code, $new_name, $new_description, $new_is_container, $resolved_location]
-            );
-
-            // Copy field definitions from source item
-            $source_fields  = FieldHelper::getFields($source_id);
             // Pre-fetch scalar values once (used when clone_data = 1)
+            $source_fields  = FieldHelper::getFields($source_id);
             $source_scalars = $clone_data ? FieldHelper::getScalarValues($source_id) : [];
-            foreach ($source_fields as $sf) {
+
+            $user_label = $active_user ? $active_user['name'] : null;
+
+            for ($i = 0; $i < $clone_count; $i++) {
+                if ($clone_count === 1) {
+                    // Single clone: use the form-supplied name and code
+                    $item_name = $new_name;
+                    $item_code = $new_code;
+                } else {
+                    // Multi-clone: auto-generate name and public code
+                    $item_name = cloneNextUniqueName($name_base, $name_num);
+                    $item_code = DatabaseHelper::generateUniqueCode();
+                }
+
+                $resolved_location = $make_root ? $item_code : $parent_raw;
+
                 DatabaseHelper::execute(
-                    "INSERT INTO item_fields
-                         (item_public_code, field_key, label, field_type, required, sort_order,
-                          allow_multiple, instructions, require_printed_name)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    [
-                        $new_code,
-                        $sf['field_key'],
-                        $sf['label'],
-                        $sf['field_type'],
-                        $sf['required'],
-                        $sf['sort_order'],
-                        $sf['allow_multiple'],
-                        $sf['instructions'],
-                        $sf['require_printed_name'],
-                    ]
+                    "INSERT INTO items (public_code, name, description, is_container, location_item_id)
+                     VALUES (?, ?, ?, ?, ?)",
+                    [$item_code, $item_name, $new_description, $new_is_container, $resolved_location]
                 );
 
-                // If cloning data, copy scalar values for text/textarea/number/date/checkbox fields
-                if ($clone_data && in_array($sf['field_type'], ['text','textarea','number','date','checkbox'])) {
-                    $new_field_id = (int)DatabaseHelper::getLastInsertId();
-                    if ($new_field_id > 0) {
-                        $src_val = $source_scalars[$sf['id']] ?? null;
-                        if ($src_val) {
-                            DatabaseHelper::execute(
-                                "INSERT INTO item_field_values
-                                     (item_public_code, field_id, value_text, value_number, value_date, value_bool)
-                                 VALUES (?, ?, ?, ?, ?, ?)",
-                                [
-                                    $new_code,
-                                    $new_field_id,
-                                    $src_val['value_text'],
-                                    $src_val['value_number'],
-                                    $src_val['value_date'],
-                                    $src_val['value_bool'],
-                                ]
-                            );
+                // Copy field definitions from source item
+                foreach ($source_fields as $sf) {
+                    DatabaseHelper::execute(
+                        "INSERT INTO item_fields
+                             (item_public_code, field_key, label, field_type, required, sort_order,
+                              allow_multiple, instructions, require_printed_name)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            $item_code,
+                            $sf['field_key'],
+                            $sf['label'],
+                            $sf['field_type'],
+                            $sf['required'],
+                            $sf['sort_order'],
+                            $sf['allow_multiple'],
+                            $sf['instructions'],
+                            $sf['require_printed_name'],
+                        ]
+                    );
+
+                    // If cloning data, copy scalar values for text/textarea/number/date/checkbox fields
+                    if ($clone_data && in_array($sf['field_type'], ['text','textarea','number','date','checkbox'])) {
+                        $new_field_id = (int)DatabaseHelper::getLastInsertId();
+                        if ($new_field_id > 0) {
+                            $src_val = $source_scalars[$sf['id']] ?? null;
+                            if ($src_val) {
+                                DatabaseHelper::execute(
+                                    "INSERT INTO item_field_values
+                                         (item_public_code, field_id, value_text, value_number, value_date, value_bool)
+                                     VALUES (?, ?, ?, ?, ?, ?)",
+                                    [
+                                        $item_code,
+                                        $new_field_id,
+                                        $src_val['value_text'],
+                                        $src_val['value_number'],
+                                        $src_val['value_date'],
+                                        $src_val['value_bool'],
+                                    ]
+                                );
+                            }
                         }
                     }
                 }
+
+                $cloned_items[] = ['code' => $item_code, 'name' => $item_name];
+
+                // Log each clone event
+                FieldHelper::logGeneral(
+                    'item_cloned',
+                    $item_code,
+                    null,
+                    $source_id,
+                    $item_code,
+                    'Clone ' . ($clone_data ? 'with data' : 'structure only') . ' from ' . $source_id,
+                    $user_label
+                );
             }
 
             DatabaseHelper::commit();
-            $success = true;
-
-            // Log the clone event
-            $user_label = $active_user ? $active_user['name'] : null;
-            FieldHelper::logGeneral(
-                'item_cloned',
-                $new_code,
-                null,
-                $source_id,
-                $new_code,
-                'Clone ' . ($clone_data ? 'with data' : 'structure only') . ' from ' . $source_id,
-                $user_label
-            );
+            $success  = true;
+            $new_code = $cloned_items[0]['code'] ?? '';
 
         } catch (Exception $e) {
             DatabaseHelper::rollback();
@@ -214,8 +285,21 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
 
     <?php if ($success): ?>
         <div class="success-banner">
-            <p>Item cloned successfully! New item ID: <strong><?php echo htmlspecialchars($new_code); ?></strong></p>
-            <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($new_code); ?>" class="btn btn-primary">View New Item</a>
+            <?php if (count($cloned_items) === 1): ?>
+                <p>Item cloned successfully! New item ID: <strong><?php echo htmlspecialchars($cloned_items[0]['code']); ?></strong></p>
+                <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($cloned_items[0]['code']); ?>" class="btn btn-primary">View New Item</a>
+            <?php else: ?>
+                <p><?php echo count($cloned_items); ?> items cloned successfully!</p>
+                <ul>
+                    <?php foreach ($cloned_items as $ci): ?>
+                        <li>
+                            <strong><?php echo htmlspecialchars($ci['name']); ?></strong>
+                            (<code><?php echo htmlspecialchars($ci['code']); ?></code>)
+                            — <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo htmlspecialchars($ci['code']); ?>">View</a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
@@ -235,7 +319,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
         </div>
 
         <form method="POST" action="">
-            <div class="form-group">
+            <div class="form-group" id="public-code-group">
                 <label for="public_code">New Item ID (10 hex digits) <span class="required">*</span></label>
                 <input type="text" id="public_code" name="public_code" maxlength="10"
                        pattern="[0-9a-fA-F]{10}" placeholder="e.g., 1a2b3c4d5e"
@@ -243,10 +327,14 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
                 <small>Exactly 10 hexadecimal characters</small>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="name-group">
                 <label for="name">Item Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name"
                        value="<?php echo htmlspecialchars($new_name); ?>" required>
+            </div>
+
+            <div class="form-group" id="multi-clone-note" style="display:none;">
+                <p><small>Names and IDs will be auto-generated for each copy using sequential numbering.</small></p>
             </div>
 
             <div class="form-group">
@@ -290,9 +378,38 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create Clone</button>
+                <input type="number" id="clone_count" name="clone_count"
+                       value="<?php echo (int)$clone_count; ?>" min="1" max="<?php echo CLONE_COUNT_MAX; ?>"
+                       style="width:4.5rem; text-align:center;"
+                       title="Number of copies to create">
+                <label for="clone_count" style="margin-left:0.25rem;">copies</label>
                 <a href="<?php echo BASE_PATH; ?>/admin/items/view.php?id=<?php echo $source['public_code']; ?>" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
+
+    <script>
+    (function () {
+        var countInput   = document.getElementById('clone_count');
+        var codeGroup    = document.getElementById('public-code-group');
+        var nameGroup    = document.getElementById('name-group');
+        var multiNote    = document.getElementById('multi-clone-note');
+        var codeInput    = document.getElementById('public_code');
+        var nameInput    = document.getElementById('name');
+
+        function toggleFields() {
+            var multi = parseInt(countInput.value, 10) > 1;
+            codeGroup.style.display  = multi ? 'none' : '';
+            nameGroup.style.display  = multi ? 'none' : '';
+            multiNote.style.display  = multi ? ''     : 'none';
+            codeInput.required       = !multi;
+            nameInput.required       = !multi;
+        }
+
+        countInput.addEventListener('input',  toggleFields);
+        countInput.addEventListener('change', toggleFields);
+        toggleFields();
+    }());
+    </script>
 
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>
