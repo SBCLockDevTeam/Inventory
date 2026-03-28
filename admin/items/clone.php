@@ -100,7 +100,7 @@ $new_is_container = $source['is_container'];
 $clone_data         = 0;
 $clone_descendants  = 0;
 $clone_count        = 1;
-$new_parent       = $source['location_item_id'] === $source['public_code'] ? 'root' : $source['location_item_id'];
+$new_parent       = $source['location_item_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_code         = FormHelper::getPost('public_code');
@@ -483,11 +483,8 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
             </div>
 
             <div class="form-group">
-                <label for="location_item_id">Parent Location <?php echo !$active_user_is_admin ? '<span class="required">*</span>' : ''; ?></label>
-                <select id="location_item_id" name="location_item_id">
-                    <?php if ($active_user_is_admin): ?>
-                    <option value="root" <?php echo ($new_parent === 'root') ? 'selected' : ''; ?>>— No parent (Root item) —</option>
-                    <?php endif; ?>
+                <label for="location_item_id">Parent Location <span class="required">*</span></label>
+                <select id="location_item_id" name="location_item_id" required>
                     <?php foreach ($available_containers as $container): ?>
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($new_parent === $container['public_code']) ? 'selected' : ''; ?>>
