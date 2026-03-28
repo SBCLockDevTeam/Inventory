@@ -6,6 +6,11 @@
 
 ## Changes
 
+### 2026-03-28 — Printer: simplified connection error message
+
+- **`api/print.php`**: When the printer binary exits non-zero, the verbose stderr (e.g. `Error: could not connect to pierround.com:9102`) is now written to the server error log via `error_log()` instead of being forwarded to the browser. The JSON response always returns the user-friendly message `"Print failed: Could not connect to printer."`.
+- **`js/pages/print_label.js`**: Removed the `✗ ` prefix from error messages so the browser shows the exact string returned by the API (e.g. `Print failed: Could not connect to printer.`).
+
 ### 2026-03-28 — Printer: hostname support via binary helper
 
 - **Root cause**: PHP's `fsockopen()` has had intermittent failures resolving hostnames (e.g. `pierround.com`) in some server configurations. The existing `bin/printer.c` binary used `inet_addr()` which only accepts raw IP addresses, not hostnames.
