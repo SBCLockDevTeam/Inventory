@@ -9,7 +9,11 @@ require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 require_once __DIR__ . '/../../lib/client_helper.php';
 
-$active_client = ClientHelper::getActiveClient();
+// Admin only
+if (!ClientHelper::isActiveUserAdmin()) {
+    header('Location: ' . BASE_PATH . '/');
+    exit;
+}
 
 $per_page    = 50;
 $page        = max(1, (int)FormHelper::getGet('page', '1'));
@@ -22,12 +26,6 @@ $params = [];
 if (!empty($filter_item)) {
     $where[]  = "e.item_public_code = ?";
     $params[] = $filter_item;
-}
-
-// Scope to active client's items when a client is selected
-if ($active_client) {
-    $where[]  = "(e.item_public_code IS NULL OR e.item_public_code IN (SELECT public_code FROM items WHERE client_id = ?))";
-    $params[] = (int)$active_client['id'];
 }
 
 $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -71,10 +69,8 @@ $page_title = 'Exceptions Log';
 
         <p style="color:#7f8c8d;margin-bottom:1rem;">
             This log shows significant events in plain language.
-            <?php if (ClientHelper::isActiveUserAdmin()): ?>
-                For full technical details, see the
-                <a href="<?php echo BASE_PATH; ?>/admin/logs/">General Log</a>.
-            <?php endif; ?>
+            For full technical details, see the
+            <a href="<?php echo BASE_PATH; ?>/admin/logs/">General Log</a>.
         </p>
 
         <!-- Filter by item -->

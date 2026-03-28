@@ -13,7 +13,7 @@ if ($id <= 0) {
 }
 
 $user = DatabaseHelper::queryOne(
-    "SELECT id, client_id, name, email, is_default, is_admin FROM users WHERE id = ?",
+    "SELECT id, name, email, is_default, is_admin FROM users WHERE id = ?",
     [$id]
 );
 if (!$user) {
@@ -28,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email      = strtolower(trim(FormHelper::getPost('email', '')));
     $is_default = isset($_POST['is_default']) ? 1 : 0;
     $is_admin   = isset($_POST['is_admin'])   ? 1 : 0;
-    $client_id  = (int)$user['client_id']; // preserve existing client assignment
 
     if (!FormHelper::isRequired($name)) {
         $errors[] = 'User name is required.';
@@ -39,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         if ($is_default) {
-            DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ? AND id != ?", [$client_id, $id]);
+            DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE id != ?", [$id]);
         }
         $rows = DatabaseHelper::execute(
             "UPDATE users SET name = ?, email = ?, is_default = ?, is_admin = ? WHERE id = ?",

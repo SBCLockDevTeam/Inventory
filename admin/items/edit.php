@@ -82,18 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($make_root) {
-        // If the item is not already a root item, enforce one-root-per-client
+        // If the item is not already a root item, enforce single root site-wide
         if (!$is_root) {
-            $active_client_for_check = ClientHelper::getActiveClient();
-            $client_id_check = $active_client_for_check ? (int)$active_client_for_check['id'] : null;
-            if ($client_id_check !== null) {
-                $existing_root = DatabaseHelper::queryOne(
-                    "SELECT public_code FROM items WHERE client_id = ? AND location_item_id = public_code AND public_code != ? LIMIT 1",
-                    [$client_id_check, $item_id]
-                );
-                if ($existing_root) {
-                    $errors[] = 'This client already has a root item (' . htmlspecialchars($existing_root['public_code']) . '). Each client may only have one root item.';
-                }
+            $existing_root = DatabaseHelper::queryOne(
+                "SELECT public_code FROM items WHERE location_item_id = public_code AND public_code != ? LIMIT 1",
+                [$item_id]
+            );
+            if ($existing_root) {
+                $errors[] = 'A root item already exists (' . htmlspecialchars($existing_root['public_code']) . '). Only one root item is allowed.';
             }
         }
     } else {
@@ -173,8 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Exclude the item itself and all its descendants from the parent dropdown
 $descendants_to_exclude   = LocationHelper::getDescendantCodes($item_id);
 $descendants_to_exclude[] = $item_id;
-$active_client            = ClientHelper::getActiveClient();
-$available_containers     = LocationHelper::getAllContainers($descendants_to_exclude, $active_client ? (int)$active_client['id'] : null);
+$available_containers     = LocationHelper::getAllContainers($descendants_to_exclude);
 
 $breadcrumb = LocationHelper::getLocationBreadcrumb($item_id);
 $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);

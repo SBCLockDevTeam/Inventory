@@ -1,28 +1,20 @@
 <?php
 /**
  * Items List Page
- * Shows items for the active client.
  */
 require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
-require_once __DIR__ . '/../../lib/client_helper.php';
 
-$search        = FormHelper::getGet('search', '');
-$active_client = ClientHelper::getActiveClient();
+$search = FormHelper::getGet('search', '');
 
 $sql    = "SELECT public_code, name, is_container FROM items WHERE 1=1";
 $params = [];
 
-if ($active_client) {
-    $sql     .= " AND client_id = ?";
-    $params[] = (int)$active_client['id'];
-}
-
 if (!empty($search)) {
     $sql   .= " AND (public_code LIKE ? OR name LIKE ? OR description LIKE ?)";
     $term   = '%' . $search . '%';
-    $params = array_merge($params, [$term, $term, $term]);
+    $params = [$term, $term, $term];
 }
 
 $sql .= " ORDER BY name";

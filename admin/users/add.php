@@ -5,7 +5,6 @@
 require_once __DIR__ . '/../../config/settings.php';
 require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
-require_once __DIR__ . '/../../lib/client_helper.php';
 
 $errors  = [];
 $success = false;
@@ -24,26 +23,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // Resolve the active client for this session
-        $active_client = ClientHelper::getActiveClient();
-        $client_id     = $active_client ? (int)$active_client['id'] : 0;
-
-        if ($client_id <= 0) {
-            $errors[] = 'No active client found. Please ensure a client is configured.';
+        if ($is_default) {
+            DatabaseHelper::execute("UPDATE users SET is_default = 0", []);
+        }
+        $rows = DatabaseHelper::execute(
+            "INSERT INTO users (name, email, is_default, is_admin) VALUES (?, ?, ?, ?)",
+            [$name, $email ?: null, $is_default, $is_admin]
+        );
+        if ($rows > 0) {
+            header('Location: ' . BASE_PATH . '/admin/users/');
+            exit;
         } else {
-            if ($is_default) {
-                DatabaseHelper::execute("UPDATE users SET is_default = 0 WHERE client_id = ?", [$client_id]);
-            }
-            $rows = DatabaseHelper::execute(
-                "INSERT INTO users (client_id, name, email, is_default, is_admin) VALUES (?, ?, ?, ?, ?)",
-                [$client_id, $name, $email ?: null, $is_default, $is_admin]
-            );
-            if ($rows > 0) {
-                header('Location: ' . BASE_PATH . '/admin/users/');
-                exit;
-            } else {
-                $errors[] = 'Failed to create user. The name may already exist.';
-            }
+            $errors[] = 'Failed to create user. The name may already exist.';
         }
     }
 } else {

@@ -20,7 +20,7 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
                 <li><a href="<?php echo BASE_PATH; ?>/admin/users/">View Users</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/exceptions.php">Exceptions Log</a></li>
                 <li><a href="<?php echo BASE_PATH; ?>/admin/logs/">General Log</a></li>
-                <li><a href="#">Settings</a></li>
+                <li><a href="#" class="menu-item-disabled">Settings</a></li>
             </ul>
         </li>
         <?php endif; ?>

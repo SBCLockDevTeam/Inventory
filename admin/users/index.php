@@ -7,10 +7,7 @@ require_once __DIR__ . '/../../lib/database.php';
 require_once __DIR__ . '/../../lib/form_helpers.php';
 
 $users = DatabaseHelper::queryAll(
-    "SELECT u.id, u.name, u.email, u.is_default, u.is_admin, c.name AS client_name
-       FROM users u
-       JOIN clients c ON c.id = u.client_id
-      ORDER BY c.name, u.name",
+    "SELECT id, name, email, is_default, is_admin FROM users ORDER BY name",
     []
 );
 
@@ -39,7 +36,6 @@ $page_title = 'Users';
                         <th>ID</th>
                         <th>User Name</th>
                         <th>Email</th>
-                        <th>Client</th>
                         <th>Default</th>
                         <th>Admin</th>
                         <th>Actions</th>
@@ -52,7 +48,6 @@ $page_title = 'Users';
                                 <td><?php echo (int)$user['id']; ?></td>
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                                 <td><?php echo htmlspecialchars($user['email'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($user['client_name']); ?></td>
                                 <td><?php echo $user['is_default'] ? '✓ Yes' : 'No'; ?></td>
                                 <td><?php echo $user['is_admin'] ? '✓ Yes' : 'No'; ?></td>
                                 <td class="actions">
@@ -63,7 +58,7 @@ $page_title = 'Users';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" class="no-results">No users found</td>
+                            <td colspan="6" class="no-results">No users found</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
