@@ -73,7 +73,7 @@ if (!$item) {
             <!-- Core item details -->
             <div class="item-card-section">
                 <div class="item-detail-grid item-detail-grid--single">
-                    <div class="item-detail-field">
+                    <div class="item-detail-field item-detail-field--full">
                         <span class="field-label">Name</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['name']); ?></span>
                     </div>
@@ -81,11 +81,11 @@ if (!$item) {
                         <span class="field-label">Description</span>
                         <span class="field-value"><?php echo nl2br(htmlspecialchars($item['description'] ?? '')); ?></span>
                     </div>
-                    <div class="item-detail-field">
+                    <div class="item-detail-field item-detail-field--full">
                         <span class="field-label">Created</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['created_at'] ?? '—'); ?></span>
                     </div>
-                    <div class="item-detail-field">
+                    <div class="item-detail-field item-detail-field--full">
                         <span class="field-label">Last Seen</span>
                         <span class="field-value"><?php echo htmlspecialchars($item['last_seen_at'] ?? '—'); ?></span>
                     </div>
