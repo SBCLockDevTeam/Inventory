@@ -552,6 +552,52 @@ footer {
 }
 
 /* ================================================================
+   Printer selector and print-label bar (item view page)
+   ================================================================ */
+.print-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.print-bar label {
+    font-weight: 600;
+    color: #2c3e50;
+    white-space: nowrap;
+}
+
+.print-bar select {
+    flex: 1 1 180px;
+    min-width: 160px;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+/* Status message shown after a print attempt */
+.print-status {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 4px;
+    display: none;
+}
+.print-status--visible { display: inline-block; }
+.print-status--success { background: #d4edda; color: #155724; }
+.print-status--error   { background: #f8d7da; color: #721c24; }
+.print-status--info    { background: #d1ecf1; color: #0c5460; }
+
+/* Active / inactive badges on the printers admin table */
+.status-active   { color: #27ae60; font-weight: 600; }
+.status-inactive { color: #e74c3c; font-weight: 600; }
+
+/* ================================================================
    Responsive — hamburger menu
    ================================================================ */
 @media (max-width: 768px) {
