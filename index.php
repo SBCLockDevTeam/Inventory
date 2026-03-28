@@ -12,9 +12,8 @@ require_once __DIR__ . '/lib/field_helper.php';
 
 $item_code = isset($_GET['Q']) ? trim($_GET['Q']) : '';
 
-// No valid code – send authenticated users to the home page
-if (!FormHelper::isValidHex10($item_code)) {
-    header('Location: ' . BASE_PATH . '/home.php');
+if (empty($item_code) || !preg_match('/^[a-f0-9]{10}$/i', $item_code)) {
+    http_response_code(404);
     exit;
 }
 
@@ -28,27 +27,46 @@ $item = DatabaseHelper::queryOne(
 
 if (!$item) {
     $page_title = 'Item Not Found';
-} else {
-    $page_title    = htmlspecialchars($item['name']);
-    $fields        = FieldHelper::getFields($item_code);
-    $scalar_values = FieldHelper::getScalarValues($item_code);
-    $all_photos    = FieldHelper::getAllPhotos($item_code);
-    $all_docs      = FieldHelper::getAllDocuments($item_code);
-    $all_sigs      = FieldHelper::getAllSignatures($item_code);
-
-    // Record this QR scan as the last time the item was seen.
-    // Re-read the timestamp the DB just wrote so the displayed value
-    // is consistent with what is stored (avoids PHP/DB timezone drift).
-    DatabaseHelper::execute(
-        "UPDATE items SET last_seen_at = NOW() WHERE public_code = ?",
-        [$item_code]
-    );
-    $refreshed = DatabaseHelper::queryOne(
-        "SELECT last_seen_at FROM items WHERE public_code = ?",
-        [$item_code]
-    );
-    $item['last_seen_at'] = $refreshed['last_seen_at'] ?? date('Y-m-d H:i:s');
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?php echo htmlspecialchars($page_title); ?></title>
+        <link rel="stylesheet" href="<?php echo CSS_PATH; ?>style.css">
+    </head>
+    <body>
+        <div class="body-content">
+            <h1><?php echo htmlspecialchars($page_title); ?></h1>
+            <p>No item matched the provided code. Please check your QR label and try again.</p>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
+
+// Valid item found – proceed with display
+$page_title    = htmlspecialchars($item['name']);
+$fields        = FieldHelper::getFields($item_code);
+$scalar_values = FieldHelper::getScalarValues($item_code);
+$all_photos    = FieldHelper::getAllPhotos($item_code);
+$all_docs      = FieldHelper::getAllDocuments($item_code);
+$all_sigs      = FieldHelper::getAllSignatures($item_code);
+
+// Record this QR scan as the last time the item was seen.
+// Re-read the timestamp the DB just wrote so the displayed value
+// is consistent with what is stored (avoids PHP/DB timezone drift).
+DatabaseHelper::execute(
+    "UPDATE items SET last_seen_at = NOW() WHERE public_code = ?",
+    [$item_code]
+);
+$refreshed = DatabaseHelper::queryOne(
+    "SELECT last_seen_at FROM items WHERE public_code = ?",
+    [$item_code]
+);
+$item['last_seen_at'] = $refreshed['last_seen_at'] ?? date('Y-m-d H:i:s');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,11 +80,6 @@ if (!$item) {
 </head>
 <body>
     <div class="body-content">
-        <?php if (!$item): ?>
-        <h1>Item Not Found</h1>
-        <p>No item matched the provided code. Please check your QR label and try again.</p>
-        <?php else: ?>
-
         <!-- Unified item card: core details + dynamic field values as one block -->
         <div class="item-detail-card">
 
@@ -129,7 +142,7 @@ if (!$item) {
                                 <div class="photo-thumbnails">
                                     <?php foreach ($photos as $photo): ?>
                                         <div class="photo-thumb-wrap">
-                                            <img src="<?php echo htmlspecialchars($photo['file_path']); ?>"
+                                            <img src="<?php echo htmlspecialchars($photo['file_path']); }?>"
                                                  alt="Photo"
                                                  onclick="window.open(this.src,'_blank')"
                                                  style="cursor:pointer;">
@@ -186,8 +199,3 @@ if (!$item) {
             <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo htmlspecialchars($item_code); ?>"
                class="btn btn-primary">Edit</a>
         </div>
-
-        <?php endif; ?>
-    </div>
-</body>
-</html>
