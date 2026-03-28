@@ -33,15 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ---------------------------------------------------------------
     // Error message handling
+    // Messages are appended into the inner .page-container child of
+    // #error-messages so they are constrained to the page column.
+    // Falls back to the outer div if the inner wrapper is absent
+    // (e.g. on pages that use the inline id="error-division" pattern).
+    // ---------------------------------------------------------------
     window.showError = function(message, type) {
         type = type || 'error';
         var errorDiv = document.getElementById('error-messages');
         if (errorDiv) {
+            var target = errorDiv.querySelector('.page-container') || errorDiv;
             var msgDiv = document.createElement('div');
             msgDiv.className = type;
             msgDiv.textContent = message;
-            errorDiv.appendChild(msgDiv);
+            target.appendChild(msgDiv);
             errorDiv.style.display = 'block';
             errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -50,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearErrors = function() {
         var errorDiv = document.getElementById('error-messages');
         if (errorDiv) {
-            errorDiv.innerHTML = '';
+            var target = errorDiv.querySelector('.page-container') || errorDiv;
+            target.innerHTML = '';
             errorDiv.style.display = 'none';
         }
     };
@@ -147,4 +155,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
-
