@@ -14,7 +14,8 @@ $item_code = isset($_GET['Q']) ? trim($_GET['Q']) : '';
 
 // No valid code – send authenticated users to the home page
 if (!FormHelper::isValidHex10($item_code)) {
-    header('Location: ' . BASE_PATH . '/home.php');
+    // Send a 404 header and exit silently
+    http_response_code(404);
     exit;
 }
 
