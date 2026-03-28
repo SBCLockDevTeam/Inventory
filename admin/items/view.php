@@ -72,8 +72,6 @@ if ($default_printer_id === 0 && !empty($printers)) {
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
 
-    <h1><?php echo $page_title; ?></h1>
-
     <div class="body-content">
 
         <!-- Location breadcrumb -->

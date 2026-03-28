@@ -58,7 +58,6 @@ $page_title = 'Delete Printer';
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
-    <h1>Delete Printer</h1>
     <div class="body-content">
         <?php if (!empty($errors)): ?>
             <div class="error-banner">

@@ -66,7 +66,6 @@ $page_title = 'Exceptions Log';
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
     <?php include __DIR__ . '/../../templates/common/menu.php'; ?>
     <div id="error-division" class="error-banner" style="display: none;"></div>
-    <h1>Exceptions Log</h1>
     <div class="body-content">
 
         <p style="color:#7f8c8d;margin-bottom:1rem;">
