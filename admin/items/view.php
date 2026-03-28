@@ -253,11 +253,10 @@ if ($default_printer_id === 0 && !empty($printers)) {
 
         </div>
 
-        <!-- Children (only shown when this item is a container) -->
-        <?php if ($item['is_container']): ?>
+        <!-- Children (only shown when this item is a container and has children) -->
+        <?php if ($item['is_container'] && !empty($children)): ?>
         <div class="children-section">
             <h2>Contents (<?php echo count($children); ?> item<?php echo count($children) !== 1 ? 's' : ''; ?>)</h2>
-            <?php if (!empty($children)): ?>
             <table class="children-table">
                 <thead>
                     <tr>
@@ -285,9 +284,6 @@ if ($default_printer_id === 0 && !empty($printers)) {
                     <?php endforeach; ?>
                 </tbody>
             </table>
-            <?php else: ?>
-                <p>This container is empty.</p>
-            <?php endif; ?>
         </div>
         <?php endif; ?>
 
