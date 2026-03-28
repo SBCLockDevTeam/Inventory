@@ -1,19 +1,17 @@
 <?php
 /**
- * Main Entry Point
- * Shows all items in a collapsed hierarchical tree view.
+ * Items – Tree View
+ *
+ * Lists every item in a collapsed, hierarchical tree.
+ * Not an admin-only function; accessible to all authenticated users.
  */
-require_once __DIR__ . '/config/settings.php';
-require_once __DIR__ . '/lib/database.php';
-require_once __DIR__ . '/lib/tree_helper.php';
-require_once __DIR__ . '/lib/client_helper.php';
+require_once __DIR__ . '/../config/settings.php';
+require_once __DIR__ . '/../lib/database.php';
+require_once __DIR__ . '/../lib/tree_helper.php';
 
-$active_user = ClientHelper::getActiveUser();
-
-$tree      = TreeHelper::buildTree();
-$view_base = BASE_PATH . '/admin/items/view.php?id=';
-
-$page_title = 'QR Inventory System';
+$tree       = TreeHelper::buildTree();
+$view_base  = BASE_PATH . '/admin/items/view.php?id=';
+$page_title = 'Items';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,11 +24,12 @@ $page_title = 'QR Inventory System';
     <script src="<?php echo JS_PATH; ?>script.js" defer></script>
     <script src="<?php echo JS_PATH; ?>pages/item_tree.js" defer></script>
 </head>
-<body data-base-path="<?php echo BASE_PATH; ?>">
-    <?php include __DIR__ . '/templates/common/header.php'; ?>
-    <?php include __DIR__ . '/templates/common/menu.php'; ?>
+<body>
+    <?php include __DIR__ . '/../templates/common/header.php'; ?>
+    <?php include __DIR__ . '/../templates/common/menu.php'; ?>
+    <div id="error-division" class="error-banner" style="display: none;"></div>
+    <h1>Items</h1>
     <div class="body-content">
-        <h1>QR Inventory</h1>
 
         <!-- Live-filter input -->
         <div class="tree-filter-section">
@@ -51,7 +50,8 @@ $page_title = 'QR Inventory System';
         <?php echo TreeHelper::renderTree($tree, $view_base); ?>
 
         <div class="actions-bottom">
-            <a href="<?php echo BASE_PATH; ?>/admin/items/add.php" class="btn btn-primary">+ Add Item</a>
+            <a href="<?php echo BASE_PATH; ?>/admin/items/add.php" class="btn btn-primary">+ Create New Item</a>
         </div>
+
     </div>
-    <?php include __DIR__ . '/templates/common/footer.php'; ?>
+    <?php include __DIR__ . '/../templates/common/footer.php'; ?>

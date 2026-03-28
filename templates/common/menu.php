@@ -7,10 +7,10 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
     <button class="hamburger-btn" id="menu-hamburger" aria-expanded="false" aria-controls="main-menu-list">☰</button>
     <ul class="menu-list" id="main-menu-list">
         <li><a href="<?php echo BASE_PATH; ?>/">Home</a></li>
-        <li><a href="<?php echo BASE_PATH; ?>/admin/items/">Items</a>
+        <li><a href="<?php echo BASE_PATH; ?>/items/">Items</a>
             <ul class="submenu">
                 <li><a href="<?php echo BASE_PATH; ?>/admin/items/add.php">Add Item</a></li>
-                <li><a href="<?php echo BASE_PATH; ?>/admin/items/">View Items</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/items/">View Items</a></li>
             </ul>
         </li>
         <?php if ($_menu_is_admin): ?>
