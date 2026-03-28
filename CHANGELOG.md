@@ -6,6 +6,23 @@
 
 ## Changes
 
+### 2026-03-28 — Printers table: rename ip_address → host
+
+- **Migration 004 updated** (`db/migrations/004_add_printers.sql`): renamed `ip_address VARCHAR(45)` to `host VARCHAR(255)` so that domain names (e.g. `pierround.com`) and IP addresses are both supported. Seed data updated to use `pierround.com` with ports 9101/9102/9103.
+- **`db/schema.sql`**: added `printers` table definition (was missing from the canonical schema).
+- **`admin/printers/index.php`**: "IP Address" column heading and data cell updated to "Host".
+- **`admin/printers/add.php`**: `ip_address` field renamed to `host`; placeholder updated to show both domain and IP examples.
+- **`admin/printers/edit.php`**: `ip_address` field renamed to `host`.
+- **`api/print.php`**: `$printer['ip_address']` reference updated to `$printer['host']`; SELECT column list updated accordingly.
+
+**Server setup instructions** (apply after pulling):
+1. Run the migration to create the printers table:
+   ```
+   mysql -u SBCInv -p SBCInv < /var/www/html/sbcqr/qr/db/migrations/004_add_printers.sql
+   ```
+2. This creates the `printers` table and inserts the three default printers (`pierround.com:9101`, `pierround.com:9102`, `pierround.com:9103`).
+3. You can adjust printer host/port values at any time via Admin → Printers.
+
 ### 2026-03-27 — Microsoft Entra ID authentication
 
 - **Entra ID integration**: Users now authenticate via Microsoft Entra ID (Azure AD) using OAuth 2.0 Authorization Code Flow with PKCE. No Composer dependency — implemented in plain PHP using `stream_context_create` for the token exchange.

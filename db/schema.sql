@@ -186,6 +186,24 @@ CREATE TABLE IF NOT EXISTS general_log (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- PRINTERS (label printer definitions, managed in admin)
+-- Host may be a domain name (e.g. pierround.com) or an IP address.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS printers (
+  id          BIGINT UNSIGNED  PRIMARY KEY AUTO_INCREMENT,
+  name        VARCHAR(128)     NOT NULL UNIQUE,
+  host        VARCHAR(255)     NOT NULL,
+  port        SMALLINT UNSIGNED NOT NULL DEFAULT 9100,
+  is_active   TINYINT(1)       NOT NULL DEFAULT 1,
+  is_default  TINYINT(1)       NOT NULL DEFAULT 0,
+  sort_order  INT              NOT NULL DEFAULT 0,
+  created_at  TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP        NULL     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_printers_active (is_active),
+  KEY idx_printers_sort   (sort_order)
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- EXCEPTIONS LOG (customer-facing, simplified)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS exceptions_log (

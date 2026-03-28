@@ -16,7 +16,7 @@ $errors  = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name       = FormHelper::getPost('name', '');
-    $ip_address = FormHelper::getPost('ip_address', '');
+    $host       = FormHelper::getPost('host', '');
     $port       = (int)FormHelper::getPost('port', '9100');
     $is_active  = isset($_POST['is_active'])  ? 1 : 0;
     $is_default = isset($_POST['is_default']) ? 1 : 0;
@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!FormHelper::isRequired($name)) {
         $errors[] = 'Printer name is required.';
     }
-    if (!FormHelper::isRequired($ip_address)) {
-        $errors[] = 'IP address is required.';
+    if (!FormHelper::isRequired($host)) {
+        $errors[] = 'Host is required.';
     }
     if ($port < 1 || $port > 65535) {
         $errors[] = 'Port must be between 1 and 65535.';
@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             DatabaseHelper::execute("UPDATE printers SET is_default = 0", []);
         }
         $rows = DatabaseHelper::execute(
-            "INSERT INTO printers (name, ip_address, port, is_active, is_default, sort_order)
+            "INSERT INTO printers (name, host, port, is_active, is_default, sort_order)
              VALUES (?, ?, ?, ?, ?, ?)",
-            [$name, $ip_address, $port, $is_active, $is_default, $sort_order]
+            [$name, $host, $port, $is_active, $is_default, $sort_order]
         );
         if ($rows > 0) {
             header('Location: ' . BASE_PATH . '/admin/printers/');
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else {
     $name       = '';
-    $ip_address = '';
+    $host       = '';
     $port       = 9100;
     $is_active  = 1;
     $is_default = 0;
@@ -90,10 +90,10 @@ $page_title = 'Add Printer';
                        value="<?php echo htmlspecialchars($name); ?>">
             </div>
             <div class="form-group">
-                <label for="ip_address">IP Address <span class="required">*</span></label>
-                <input type="text" id="ip_address" name="ip_address" required maxlength="45"
-                       placeholder="e.g. 76.123.22.158"
-                       value="<?php echo htmlspecialchars($ip_address); ?>">
+                <label for="host">Host <span class="required">*</span></label>
+                <input type="text" id="host" name="host" required maxlength="255"
+                       placeholder="e.g. pierround.com or 192.168.1.100"
+                       value="<?php echo htmlspecialchars($host); ?>">
             </div>
             <div class="form-group">
                 <label for="port">Port <span class="required">*</span></label>

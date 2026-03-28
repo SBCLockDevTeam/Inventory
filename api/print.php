@@ -40,7 +40,7 @@ if ($printer_id <= 0) {
 }
 
 $printer = DatabaseHelper::queryOne(
-    "SELECT id, name, ip_address, port, is_active FROM printers WHERE id = ?",
+    "SELECT id, name, host, port, is_active FROM printers WHERE id = ?",
     [$printer_id]
 );
 
@@ -67,7 +67,7 @@ if (trim($description) !== '') {
 $payload .= "\x0c";                                      // Form feed – eject label
 
 // Open a TCP connection to the printer (5-second timeout)
-$fp = @fsockopen($printer['ip_address'], (int)$printer['port'], $errno, $errstr, PRINTER_CONNECT_TIMEOUT);
+$fp = @fsockopen($printer['host'], (int)$printer['port'], $errno, $errstr, PRINTER_CONNECT_TIMEOUT);
 if (!$fp) {
     http_response_code(502);
     echo json_encode([
