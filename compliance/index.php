@@ -18,7 +18,7 @@ require_once __DIR__ . '/../config/settings.php';
     <header class="site-header">
         <div class="header-content">
             <div class="header-logo">
-                <a href="<?php echo BASE_PATH; ?>/home.php" class="header-site-name">QR Inventory</a>
+                <a href="<?php echo BASE_PATH; ?>/items/" class="header-site-name">QR Inventory</a>
             </div>
         </div>
     </header>
