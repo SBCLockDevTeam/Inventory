@@ -229,11 +229,6 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 
             <!-- ── Section 1: Core item properties ─────────────────────── -->
             <div class="form-group">
-                <label>Item ID</label>
-                <input type="text" value="<?php echo htmlspecialchars($item['public_code']); ?>" disabled>
-                <small>Item ID cannot be changed after creation</small>
-            </div>
-            <div class="form-group">
                 <label for="name">Item Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name"
                        value="<?php echo htmlspecialchars($name); ?>" required>
@@ -262,7 +257,6 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($container['name']); ?>
-                            (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>

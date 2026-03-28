@@ -97,7 +97,7 @@ $page_title = 'Manage Fields - ' . htmlspecialchars($item['name']);
             <p class="success">Field added successfully!</p>
         </div>
     <?php endif; ?>
-    <h1>Manage Fields for Item: <?php echo htmlspecialchars($item['name']); ?> (<?php echo htmlspecialchars($item['public_code']); ?>)</h1>
+    <h1>Manage Fields for Item: <?php echo htmlspecialchars($item['name']); ?></h1>
     <div class="body-content">
         <div class="current-fields">
             <h2>Current Fields</h2>

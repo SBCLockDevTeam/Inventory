@@ -39,14 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $make_root = false;
     }
 
-    if (!FormHelper::isRequired($public_code)) {
-        $errors[] = 'Item ID is required';
-    } elseif (!FormHelper::isValidHex10($public_code)) {
-        $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
+    // Auto-fix the code if the pre-generated one is somehow invalid or already taken
+    if (!FormHelper::isValidHex10($public_code)) {
+        $public_code = DatabaseHelper::generateUniqueCode();
     } else {
         $existing = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$public_code]);
         if ($existing) {
-            $errors[] = 'Item ID already exists. Please choose a different ID.';
+            $public_code = DatabaseHelper::generateUniqueCode();
         }
     }
 
@@ -65,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             []
         );
         if ($existing_root) {
-            $errors[] = 'A root item already exists (' . htmlspecialchars($existing_root['public_code']) . '). Only one root item is allowed.';
+            $errors[] = 'A root item already exists. Only one root item is allowed.';
         }
     } else {
         // Verify parent exists and is a container
@@ -140,13 +139,7 @@ if ($location_item_id === 'root' || $location_item_id === '') {
     <h1>Create New Item</h1>
     <div class="body-content">
         <form method="POST" action="" class="form-create-item">
-            <div class="form-group">
-                <label for="public_code">Item ID (10 hex digits) <span class="required">*</span></label>
-                <input type="text" id="public_code" name="public_code" maxlength="10"
-                       pattern="[0-9a-fA-F]{10}" placeholder="e.g., 1a2b3c4d5e"
-                       value="<?php echo htmlspecialchars($public_code); ?>" required>
-                <small>Exactly 10 hexadecimal characters (0-9, a-f, A-F)</small>
-            </div>
+            <input type="hidden" name="public_code" value="<?php echo htmlspecialchars($public_code); ?>">
             <div class="form-group">
                 <label for="name">Item Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" placeholder="Enter item name"
@@ -174,7 +167,6 @@ if ($location_item_id === 'root' || $location_item_id === '') {
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($location_item_id === $container['public_code']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($container['name']); ?>
-                            (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>

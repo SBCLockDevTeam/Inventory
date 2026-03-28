@@ -122,14 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate new public code only for single-clone (multi-clone auto-generates codes)
     if ($clone_count === 1) {
-        if (!FormHelper::isRequired($new_code)) {
-            $errors[] = 'Item ID is required';
-        } elseif (!FormHelper::isValidHex10($new_code)) {
-            $errors[] = 'Item ID must be exactly 10 hexadecimal characters (0-9, a-f)';
+        // Auto-fix the code if the pre-generated one is somehow invalid or already taken
+        if (!FormHelper::isValidHex10($new_code)) {
+            $new_code = DatabaseHelper::generateUniqueCode();
         } else {
             $exists = DatabaseHelper::queryOne("SELECT public_code FROM items WHERE public_code = ?", [$new_code]);
             if ($exists) {
-                $errors[] = 'Item ID already exists. Please choose a different ID.';
+                $new_code = DatabaseHelper::generateUniqueCode();
             }
         }
 
@@ -421,8 +420,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
     <div class="body-content">
         <div class="item-detail-card" style="margin-bottom:1.5rem;">
             <h2>Source Item</h2>
-            <p><strong><?php echo htmlspecialchars($source['name']); ?></strong>
-               <code>(<?php echo htmlspecialchars($source['public_code']); ?>)</code></p>
+            <p><strong><?php echo htmlspecialchars($source['name']); ?></strong></p>
             <p><?php echo htmlspecialchars($source['description'] ?? ''); ?></p>
             <?php if (!empty($source_fields)): ?>
                 <p><small><?php echo count($source_fields); ?> custom field<?php echo count($source_fields) !== 1 ? 's' : ''; ?> will be copied.</small></p>
@@ -432,13 +430,7 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
         </div>
 
         <form method="POST" action="">
-            <div class="form-group" id="public-code-group">
-                <label for="public_code">New Item ID (10 hex digits) <span class="required">*</span></label>
-                <input type="text" id="public_code" name="public_code" maxlength="10"
-                       pattern="[0-9a-fA-F]{10}" placeholder="e.g., 1a2b3c4d5e"
-                       value="<?php echo htmlspecialchars($new_code); ?>" required>
-                <small>Exactly 10 hexadecimal characters</small>
-            </div>
+            <input type="hidden" id="public_code" name="public_code" value="<?php echo htmlspecialchars($new_code); ?>">
 
             <div class="form-group" id="name-group">
                 <label for="name">Item Name <span class="required">*</span></label>
@@ -489,7 +481,6 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
                         <option value="<?php echo htmlspecialchars($container['public_code']); ?>"
                             <?php echo ($new_parent === $container['public_code']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($container['name']); ?>
-                            (<?php echo htmlspecialchars($container['public_code']); ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -510,18 +501,14 @@ $page_title           = 'Clone Item – ' . htmlspecialchars($source['name']);
     <script>
     (function () {
         var countInput   = document.getElementById('clone_count');
-        var codeGroup    = document.getElementById('public-code-group');
         var nameGroup    = document.getElementById('name-group');
         var multiNote    = document.getElementById('multi-clone-note');
-        var codeInput    = document.getElementById('public_code');
         var nameInput    = document.getElementById('name');
 
         function toggleFields() {
             var multi = parseInt(countInput.value, 10) > 1;
-            codeGroup.style.display  = multi ? 'none' : '';
             nameGroup.style.display  = multi ? 'none' : '';
             multiNote.style.display  = multi ? ''     : 'none';
-            codeInput.required       = !multi;
             nameInput.required       = !multi;
         }
 
