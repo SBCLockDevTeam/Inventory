@@ -119,6 +119,7 @@ if ($default_printer_id === 0 && !empty($printers)) {
                 </option>
                 <?php endforeach; ?>
             </select>
+            <span id="print-status" class="print-status"></span>
             <button id="btn-print-label"
                     class="btn btn-secondary"
                     type="button"
@@ -126,7 +127,6 @@ if ($default_printer_id === 0 && !empty($printers)) {
                     data-description="<?php echo htmlspecialchars($item['description'] ?? '', ENT_QUOTES); ?>">
                 🖨 Print Label
             </button>
-            <span id="print-status" class="print-status"></span>
         </div>
         <?php endif; ?>
 
