@@ -42,10 +42,14 @@ CREATE TABLE IF NOT EXISTS users (
   entra_oid VARCHAR(64) NULL,
   is_default TINYINT(1) NOT NULL DEFAULT 0,
   is_admin TINYINT(1) NOT NULL DEFAULT 0,
+  preferred_printer_id BIGINT UNSIGNED NULL DEFAULT NULL
+    COMMENT 'FK to printers.id — user''s last chosen printer; NULL = use system default',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_users_client
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  CONSTRAINT fk_users_preferred_printer
+    FOREIGN KEY (preferred_printer_id) REFERENCES printers(id) ON DELETE SET NULL,
   UNIQUE KEY uq_users_client_name (client_id, name),
   UNIQUE KEY uq_users_email (email),
   UNIQUE KEY uq_users_entra_oid (entra_oid)

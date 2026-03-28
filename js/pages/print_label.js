@@ -2,17 +2,16 @@
  * Printer selector and print-label functionality for the item view page.
  *
  * - Reads the list of active printers from the DOM (#printer-select).
- * - Persists the user's selected printer in localStorage so the choice
- *   survives page navigation and browser restarts.
- * - The default printer (is_default = 1) is used when no localStorage
- *   preference exists yet.
+ * - The server pre-selects the user's saved printer (or the system default
+ *   when no preference has been saved yet).
+ * - When the user changes their printer choice, the new selection is saved
+ *   to the server via AJAX (api/set_printer.php) so it persists across
+ *   browsers and devices.
  * - The "Print Label" button sends an AJAX POST to /api/print.php and
  *   shows a brief status message in the #print-status span.
  */
 (function () {
     'use strict';
-
-    var STORAGE_KEY = 'sbcinv_selected_printer';
 
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -24,27 +23,23 @@
             return;
         }
 
-        // Restore the previously chosen printer, falling back to the default
-        var stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            // Make sure the stored value still exists in the dropdown
-            var found = false;
-            for (var i = 0; i < select.options.length; i++) {
-                if (select.options[i].value === stored) {
-                    select.value = stored;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // Stored printer no longer available; clear stale value
-                localStorage.removeItem(STORAGE_KEY);
-            }
-        }
-
-        // Persist selection whenever the user changes it
+        // Persist selection server-side whenever the user changes it
         select.addEventListener('change', function () {
-            localStorage.setItem(STORAGE_KEY, select.value);
+            var printerId = select.value;
+            if (!printerId) { return; }
+
+            fetch(BASE_PATH + '/api/set_printer.php', {
+                method: 'POST',
+                body: (function () {
+                    var fd = new FormData();
+                    fd.append('printer_id', printerId);
+                    return fd;
+                }()),
+            })
+            .catch(function (err) {
+                // Log silently — failure to save preference is non-critical
+                console.warn('Could not save printer preference:', String(err));
+            });
         });
 
         // Send print job on button click
