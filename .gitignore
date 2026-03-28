@@ -12,6 +12,9 @@
 !/uploads/signatures/
 !/uploads/signatures/.gitkeep
 
+# Compiled binaries - built locally per platform, not tracked in Git
+/bin/printer
+
 # Common ignores
 *.log
 .DS_Store
