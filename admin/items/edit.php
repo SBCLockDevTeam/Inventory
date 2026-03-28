@@ -188,6 +188,7 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
     <script src="<?php echo JS_PATH; ?>lib/photo_capture.js" defer></script>
     <script src="<?php echo JS_PATH; ?>lib/signature_capture.js" defer></script>
     <script src="<?php echo JS_PATH; ?>pages/fill_item.js" defer></script>
+    <script src="<?php echo JS_PATH; ?>pages/edit_item.js" defer></script>
 </head>
 <body data-base-path="<?php echo BASE_PATH; ?>">
     <?php include __DIR__ . '/../../templates/common/header.php'; ?>
@@ -285,9 +286,11 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
             </div>
 
             <!-- ── Section 2: Dynamic field values ─────────────────────── -->
+            <?php $field_count = count($fields); ?>
             <?php if (!empty($fields)): ?>
             <hr style="margin: 1.5rem 0;">
             <h2 style="margin-bottom:1rem;">Field Values</h2>
+            <div id="fields-list-container">
             <?php foreach ($fields as $field):
                 $fid       = (int)$field['id'];
                 $ftype     = $field['field_type'];
@@ -304,6 +307,24 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                  data-allow-multiple="<?php echo $multi ? '1' : '0'; ?>"
                  data-require-printed-name="<?php echo $field['require_printed_name'] ? '1' : '0'; ?>"
                  data-instructions="<?php echo $instrText; ?>">
+
+                <?php if ($active_user_is_admin): ?>
+                <div class="field-block-controls">
+                    <button type="button" class="btn btn-small field-order-up"
+                            data-field-id="<?php echo $fid; ?>"
+                            data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
+                            title="Move Up">▲</button>
+                    <button type="button" class="btn btn-small field-order-down"
+                            data-field-id="<?php echo $fid; ?>"
+                            data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
+                            title="Move Down">▼</button>
+                    <button type="button" class="btn btn-small btn-danger field-delete-inline"
+                            data-field-id="<?php echo $fid; ?>"
+                            data-field-label="<?php echo $label; ?>"
+                            data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
+                            title="Delete this field">✕ Delete Field</button>
+                </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label>
@@ -402,11 +423,15 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                 </div>
             </div>
             <?php endforeach; ?>
+            </div><!-- #fields-list-container -->
             <?php else: ?>
-            <p style="margin-top:1rem;">
-                No custom fields defined yet.
-                <a href="<?php echo BASE_PATH; ?>/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Manage Fields</a>
-            </p>
+            <p style="margin-top:1rem;">No custom fields defined yet.</p>
+            <?php endif; ?>
+
+            <?php if ($active_user_is_admin): ?>
+            <div class="field-add-section">
+                <button type="button" class="btn btn-secondary" id="add-field-btn">+ Add Field</button>
+            </div>
             <?php endif; ?>
 
             <div class="form-actions">
@@ -416,4 +441,60 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
         </form>
 
     </div>
+
+    <?php if ($active_user_is_admin): ?>
+    <!-- Add Field modal -->
+    <div id="add-field-modal" class="add-field-modal-overlay">
+        <div class="add-field-modal-dialog">
+            <h3>Add New Field</h3>
+            <form id="add-field-form">
+                <input type="hidden" name="item_code" value="<?php echo htmlspecialchars($item['public_code']); ?>">
+                <div class="form-group">
+                    <label for="af-label">Field Label <span class="required">*</span></label>
+                    <input type="text" id="af-label" name="label" required>
+                </div>
+                <div class="form-group">
+                    <label for="af-field_type">Field Type <span class="required">*</span></label>
+                    <select id="af-field_type" name="field_type" required>
+                        <option value="text">Text</option>
+                        <option value="textarea">Textarea</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="checkbox">Checkbox</option>
+                        <option value="photo">Photo</option>
+                        <option value="document">Document</option>
+                        <option value="signature">Signature</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="required" value="1">
+                        <span>Required field</span>
+                    </label>
+                </div>
+                <div class="form-group" id="af-multiple-group" style="display:none;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="allow_multiple" value="1">
+                        <span>Allow multiple values</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="af-instructions">Instructions</label>
+                    <textarea id="af-instructions" name="instructions" rows="3"></textarea>
+                </div>
+                <div class="form-group" id="af-printed-name-group" style="display:none;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="require_printed_name" value="1">
+                        <span>Require printed name</span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Field</button>
+                    <button type="button" class="btn btn-secondary add-field-modal-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <?php include __DIR__ . '/../../templates/common/footer.php'; ?>

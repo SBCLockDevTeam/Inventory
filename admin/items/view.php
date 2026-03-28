@@ -84,7 +84,6 @@ $all_sigs       = FieldHelper::getAllSignatures($item_id);
         <!-- Action buttons -->
         <div class="item-actions">
             <a href="<?php echo BASE_PATH; ?>/admin/items/edit.php?id=<?php echo $item['public_code']; ?>" class="btn btn-primary">Edit Item</a>
-            <a href="<?php echo BASE_PATH; ?>/admin/items/fields.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Manage Fields</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/clone.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Clone Item</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/delete.php?id=<?php echo $item['public_code']; ?>" class="btn btn-danger">Delete Item</a>
             <a href="<?php echo BASE_PATH; ?>/admin/items/" class="btn btn-secondary">Back to Items</a>
