@@ -4,20 +4,20 @@
  * Handles expand/collapse for the hierarchical item tree view,
  * and client-side filtering to highlight matching nodes.
  *
- * Expand/collapse state is stored in sessionStorage so it survives
- * navigation within the same browser tab but resets when the tab is closed.
+ * Expand/collapse state is stored in localStorage so it survives
+ * navigation across tabs and browser restarts.
  */
 document.addEventListener('DOMContentLoaded', function () {
 
-    var SESSION_KEY = 'itemTreeExpanded';
+    var STORAGE_KEY = 'itemTreeExpanded';
 
     // ---------------------------------------------------------------
-    // sessionStorage helpers – store a map of { itemId: true } for
+    // localStorage helpers – store a map of { itemId: true } for
     // every node that is currently open.
     // ---------------------------------------------------------------
     function loadExpanded() {
         try {
-            var raw = sessionStorage.getItem(SESSION_KEY);
+            var raw = localStorage.getItem(STORAGE_KEY);
             return raw ? JSON.parse(raw) : {};
         } catch (e) {
             return {};
@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function saveExpanded(map) {
         try {
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(map));
-        } catch (e) { /* sessionStorage unavailable – silent fail */ }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+        } catch (e) { /* localStorage unavailable – silent fail */ }
     }
 
     function setNodeExpanded(itemId, open) {

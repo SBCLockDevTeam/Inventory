@@ -6,6 +6,23 @@
 
 ## Changes
 
+### 2026-03-29 — Item tree expand/collapse state now persists across tabs and browser restarts
+
+The previous implementation stored the tree's open/collapsed state in `sessionStorage`,
+which is scoped to a single browser tab. This meant the state was lost whenever the user
+opened a new tab or restarted the browser, making the feature appear non-functional.
+
+- **`js/pages/item_tree.js`**: Switched from `sessionStorage` to `localStorage` for
+  storing the expand/collapse map (`itemTreeExpanded` key). State now survives across
+  browser tabs and browser restarts, and is only reset when the user explicitly clicks
+  "Collapse All" or clears their browser storage.
+
+**Server setup instructions** (apply after pulling):
+1. Pull the latest code:
+   ```
+   cd /var/www/html/sbcqr/qr && git pull
+   ```
+
 ### 2026-03-28 — Printer selection persists per user across sessions
 
 Printer preference is now stored server-side per authenticated user so it
