@@ -79,8 +79,8 @@ $payload .= "\x1Bk\x0B\x1BX\x00\x30\x00";
 $payload .= $item_name;
 
 
-$payload .= "\x1B$\xA0\x00";							// Absolute Horozontal Position
-$payload .= "\x1B(V\x02\x00\x60\x00";					// Absolute Vertical Position
+$payload .= "\x1B$\x05\x01";							// Absolute Horozontal Position
+$payload .= "\x1B(V\x02\x00\x45\x00";					// Absolute Vertical Position
 $payload .= "\x1Bk\x0B\x1BX\x00&\x00";
 //$payload .= "\x1Bk\x0B\x1BX\x00\x30\x00";
 
