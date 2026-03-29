@@ -12,6 +12,7 @@ require_once __DIR__ . '/../lib/form_helpers.php';
 require_once __DIR__ . '/../lib/location_helper.php';
 require_once __DIR__ . '/../lib/client_helper.php';
 require_once __DIR__ . '/../lib/field_helper.php';
+require_once __DIR__ . '/../lib/printer_helper.php';
 
 $item_id = FormHelper::getGet('id');
 if (!FormHelper::isValidHex10($item_id)) {
@@ -35,6 +36,14 @@ $errors  = [];
 
 $active_user          = ClientHelper::getActiveUser();
 $active_user_is_admin = ClientHelper::isActiveUserAdmin();
+
+// Load active printers for the optional "Print Label" checkbox
+$printers            = PrinterHelper::getActivePrinters();
+$selected_printer_id = PrinterHelper::getSelectedPrinterId($printers);
+
+$print_items      = [];  // populated on success when print_label is checked
+$print_printer_id = 0;
+$success          = false;
 
 // Seed form fields from existing item
 $name             = $item['name'];
@@ -174,8 +183,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $user_label = $active_user ? $active_user['name'] : null;
         FieldHelper::logGeneral('item_updated', $item_id, null, null, null, null, $user_label);
-        header('Location: ' . BASE_PATH . '/items/view.php?id=' . urlencode($item_id));
-        exit;
+
+        $print_printer_id = (int)FormHelper::getPost('printer_id');
+        if (!empty($_POST['print_label']) && $print_printer_id > 0) {
+            // Stay on page to trigger auto-print, then provide a link to the view page
+            $success     = true;
+            $print_items = [[
+                'code'        => $item_id,
+                'name'        => $name,
+                'description' => $description,
+            ]];
+        } else {
+            header('Location: ' . BASE_PATH . '/items/view.php?id=' . urlencode($item_id));
+            exit;
+        }
     }
 }
 
@@ -211,6 +232,12 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
             <p class="error"><?php echo htmlspecialchars($error); ?></p>
         <?php endforeach; ?>
     </div>
+    <?php if ($success): ?>
+        <div class="success-banner">
+            <p>Changes saved successfully!</p>
+            <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo htmlspecialchars($item_id); ?>" class="btn btn-primary">View Item</a>
+        </div>
+    <?php endif; ?>
 
     <div class="body-content">
 
@@ -431,6 +458,7 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Save Changes</button>
+                <?php include __DIR__ . '/../templates/common/print_label_row.php'; ?>
                 <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo $item['public_code']; ?>" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
@@ -496,6 +524,17 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
             </form>
         </div>
     </div>
+    <?php endif; ?>
+
+    <?php if (!empty($print_items)): ?>
+    <script src="<?php echo JS_PATH; ?>pages/print_label.js"></script>
+    <script>
+    // Auto-print label after saving changes
+    window.autoPrintLabels(
+        <?php echo json_encode($print_items, JSON_HEX_TAG | JSON_HEX_AMP); ?>,
+        <?php echo (int)$print_printer_id; ?>
+    );
+    </script>
     <?php endif; ?>
 
     <?php include __DIR__ . '/../templates/common/footer.php'; ?>

@@ -20,6 +20,7 @@ require_once __DIR__ . '/../lib/form_helpers.php';
 require_once __DIR__ . '/../lib/location_helper.php';
 require_once __DIR__ . '/../lib/client_helper.php';
 require_once __DIR__ . '/../lib/field_helper.php';
+require_once __DIR__ . '/../lib/printer_helper.php';
 
 $source_id = FormHelper::getGet('id');
 if (!FormHelper::isValidHex10($source_id)) {
@@ -80,6 +81,13 @@ $errors      = [];
 $success     = false;
 $new_code    = '';
 $cloned_items = []; // [{code, name}] — populated on successful POST
+
+// Load active printers for the optional "Print Label" checkbox
+$printers            = PrinterHelper::getActivePrinters();
+$selected_printer_id = PrinterHelper::getSelectedPrinterId($printers);
+
+$print_items      = [];  // populated on success when print_label is checked
+$print_printer_id = 0;
 
 // Suggest a unique ID when the page first loads (GET request)
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -365,6 +373,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success  = true;
             $new_code = $cloned_items[0]['code'] ?? '';
 
+            // Build the print queue before leaving the success block
+            $print_printer_id = (int)FormHelper::getPost('printer_id');
+            if (!empty($_POST['print_label']) && $print_printer_id > 0) {
+                foreach ($cloned_items as $_ci) {
+                    $print_items[] = [
+                        'code'        => $_ci['code'],
+                        'name'        => $_ci['name'],
+                        'description' => $new_description,
+                    ];
+                }
+            }
+
         } catch (Exception $e) {
             DatabaseHelper::rollback();
             $errors[] = 'Clone failed: ' . $e->getMessage();
@@ -502,11 +522,13 @@ $source_has_descendants = !empty($source_child);
                        style="width:4.5rem; text-align:center;"
                        title="Number of copies to create">
                 <label for="clone_count" style="margin-left:0.25rem;">copies</label>
+                <?php include __DIR__ . '/../templates/common/print_label_row.php'; ?>
                 <a href="<?php echo BASE_PATH; ?>/items/view.php?id=<?php echo $source['public_code']; ?>" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 
+    <script src="<?php echo JS_PATH; ?>pages/print_label.js"></script>
     <script>
     (function () {
         var countInput   = document.getElementById('clone_count');
@@ -525,6 +547,14 @@ $source_has_descendants = !empty($source_child);
         countInput.addEventListener('change', toggleFields);
         toggleFields();
     }());
+
+    <?php if (!empty($print_items)): ?>
+    // Auto-print labels for newly cloned items
+    window.autoPrintLabels(
+        <?php echo json_encode($print_items, JSON_HEX_TAG | JSON_HEX_AMP); ?>,
+        <?php echo (int)$print_printer_id; ?>
+    );
+    <?php endif; ?>
     </script>
 
     <?php include __DIR__ . '/../templates/common/footer.php'; ?>
