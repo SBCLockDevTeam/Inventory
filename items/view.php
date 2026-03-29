@@ -145,7 +145,8 @@ if ($auth_user && !empty($auth_user['user_id'])) {
                     class="btn btn-secondary"
                     type="button"
                     data-item-name="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>"
-                    data-description="<?php echo htmlspecialchars($item['description'] ?? '', ENT_QUOTES); ?>">
+                    data-description="<?php echo htmlspecialchars($item['description'] ?? '', ENT_QUOTES); ?>"
+                    data-item-code="<?php echo htmlspecialchars($item['public_code'], ENT_QUOTES); ?>">
                 🖨 Print Label
             </button>
         </div>
