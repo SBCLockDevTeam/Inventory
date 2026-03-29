@@ -65,7 +65,7 @@ $payload .= "\x1b\x6b\x0b";                             // Select font (Letter G
 //$payload .= "\x1b\x45";								  // Turn on bold
 //$payload .= "\x1B\x46";							      // Turn off bold
 // TestString = TestString & Chr(27) & "(c" & Chr(2) & Chr(0) & Chr(199) & Chr(3)
-$payload .= "\x1B(c\x02\x00\xd0\x03";					
+$payload .= "\x1B(c\x02\x00\x88\x03";					
 
 
 
