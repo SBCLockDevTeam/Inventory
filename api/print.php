@@ -64,7 +64,10 @@ $payload .= "\x1b@";                                    // Initialize printer
 $payload .= "\x1b\x6b\x0b";                             // Select font (Letter Gothic Bold)
 //$payload .= "\x1b\x45";								  // Turn on bold
 //$payload .= "\x1B\x46";							      // Turn off bold
-$payload .= "\x1B$\x19\x00";
+
+	
+
+$payload .= "\x1B$\x30\x00";
 $payload .= "\x1B(V\x02\x00\x0C\x00";
 $payload .= "\x1Bk\x0B\x1BX\x00&\x00";
 
