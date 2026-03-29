@@ -6,6 +6,7 @@
  *   printer_id  — INT id from the printers table
  *   item_name   — text to print as the item name
  *   description — text to print as the item description
+ *   item_code   — 10 hex-digit public_code of the item (for QR URL)
  *
  * Returns JSON: { success: bool, error?: string }
  */
@@ -30,10 +31,17 @@ $printer_id  = (int)FormHelper::getPost('printer_id', '0');
 // HTML entities (e.g. "&amp;") are never sent to the ESC/P device.
 $item_name   = trim($_POST['item_name']   ?? '');
 $description = trim($_POST['description'] ?? '');
+$item_code   = trim($_POST['item_code']   ?? '');
 
 if ($printer_id <= 0) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Invalid printer ID']);
+    exit;
+}
+
+if (!FormHelper::isValidHex10($item_code)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'Invalid item code']);
     exit;
 }
 
@@ -92,7 +100,7 @@ if (trim($description) !== '') {
 $payload .= "\x1B$\x01\x00";							// Absolute Horozontal Position
 $payload .= "\x1B(V\x02\x00\x48\x00";					// Absolute Vertical Position
 $payload .="\x1b\x69\x51\x07\x02\x00\x00\x00\x00\x04\x00";
-$payload .="{BASE_URLGOESHERE}/?Q={ITEMIDGOESHERE}";
+$payload .= BASE_URL . "/?Q=" . $item_code;
 $payload .="\x5c\x5c\x5c";
 
 

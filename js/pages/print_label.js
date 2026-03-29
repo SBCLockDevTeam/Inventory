@@ -47,6 +47,7 @@
             var printerId   = select.value;
             var itemName    = printBtn.getAttribute('data-item-name')    || '';
             var description = printBtn.getAttribute('data-description')  || '';
+            var itemCode    = printBtn.getAttribute('data-item-code')     || '';
 
             if (!printerId) {
                 window.showError('Please select a printer first.', 'error');
@@ -61,6 +62,7 @@
             formData.append('printer_id',  printerId);
             formData.append('item_name',   itemName);
             formData.append('description', description);
+            formData.append('item_code',   itemCode);
 
             fetch(BASE_PATH + '/api/print.php', {
                 method: 'POST',
