@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS item_fields (
   allow_multiple TINYINT(1) NOT NULL DEFAULT 0,
   instructions TEXT NULL,
   require_printed_name TINYINT(1) NOT NULL DEFAULT 0,
+  publicly_viewable TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_item_fields_item

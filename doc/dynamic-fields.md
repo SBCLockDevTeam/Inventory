@@ -33,6 +33,7 @@ Defined in `item_fields` per field:
 | Allow multiple | `allow_multiple` | For `photo`/`document`: allow more than one file per field |
 | Instructions | `instructions` | Optional help text displayed below the field label |
 | Require printed name | `require_printed_name` | For `signature` fields: capture a text "printed name" alongside the signature |
+| Publicly Viewable | `publicly_viewable` | If `1` (default), the field value is shown on the public QR scan page. Admins can toggle this per field on the edit page. |
 
 ---
 

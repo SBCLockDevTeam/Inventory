@@ -24,7 +24,7 @@ class FieldHelper {
     public static function getFields(string $item_public_code): array {
         return DatabaseHelper::queryAll(
             "SELECT id, field_key, label, field_type, required, sort_order,
-                    allow_multiple, instructions, require_printed_name
+                    allow_multiple, instructions, require_printed_name, publicly_viewable
                FROM item_fields
               WHERE item_public_code = ?
               ORDER BY sort_order",

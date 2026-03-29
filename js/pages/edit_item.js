@@ -193,4 +193,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ---------------------------------------------------------------
+    // Publicly Viewable toggle (admin only, per-field)
+    // ---------------------------------------------------------------
+    if (fieldsContainer) {
+        fieldsContainer.addEventListener('change', function (e) {
+            var cb = e.target.closest('.field-publicly-viewable');
+            if (!cb) { return; }
+
+            var fieldId  = cb.dataset.fieldId;
+            var itemCode = cb.dataset.itemCode;
+
+            var formData = new FormData();
+            formData.append('field_id',  fieldId);
+            formData.append('item_code', itemCode);
+            if (cb.checked) {
+                formData.append('publicly_viewable', '1');
+            }
+
+            cb.disabled = true;
+
+            fetch(basePath + '/api/set_field_publicly_viewable.php', { method: 'POST', body: formData })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.success) {
+                        alert('Update failed: ' + (data.error || 'Unknown error'));
+                        cb.checked = !cb.checked; // revert
+                    }
+                    cb.disabled = false;
+                })
+                .catch(function (err) {
+                    alert('Request failed: ' + err);
+                    cb.checked = !cb.checked; // revert
+                    cb.disabled = false;
+                });
+        });
+    }
+
 });

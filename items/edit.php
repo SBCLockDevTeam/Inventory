@@ -295,6 +295,13 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                             data-field-label="<?php echo $label; ?>"
                             data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
                             title="Delete this field">✕ Delete Field</button>
+                    <label class="checkbox-label field-publicly-viewable-label">
+                        <input type="checkbox" class="field-publicly-viewable"
+                               data-field-id="<?php echo $fid; ?>"
+                               data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
+                               <?php echo $field['publicly_viewable'] ? 'checked' : ''; ?>>
+                        <span>Publicly Viewable</span>
+                    </label>
                 </div>
                 <?php endif; ?>
 
@@ -458,6 +465,12 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                     <label class="checkbox-label">
                         <input type="checkbox" name="require_printed_name" value="1">
                         <span>Require printed name</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="publicly_viewable" value="1" checked>
+                        <span>Publicly Viewable</span>
                     </label>
                 </div>
                 <div class="form-actions">
