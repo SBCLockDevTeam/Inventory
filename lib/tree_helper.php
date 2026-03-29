@@ -81,7 +81,7 @@ class TreeHelper {
             $code_esc     = htmlspecialchars($node['public_code'], ENT_QUOTES, 'UTF-8');
             $href         = $view_base . $code_esc;
 
-            $html .= '<li class="tree-node" role="treeitem">' . "\n";
+            $html .= '<li class="tree-node" role="treeitem" data-item-id="' . $code_esc . '">' . "\n";
             $html .= '<div class="tree-row">' . "\n";
 
             if ($is_container && $has_children) {
