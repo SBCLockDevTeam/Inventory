@@ -78,7 +78,7 @@ if (trim($description) !== '') {
 $payload .= "\x1B$\x08\x00";							// Absolute Horozontal Position
 $payload .= "\x1B(V\x22\x00\x0C\x00";					// Absolute Vertical Position
 $payload .="\x1b\x69\x51\x04\x02\x00\x00\x00\x00\x02\x00";
-$payload .="https://sbcqr/qr/?Q=792ddc3f5c";
+$payload .="https://sbcqr.com/qr/?Q=792ddc3f5c";
 $payload .="\x5c\x5c\x5c";
 
 
