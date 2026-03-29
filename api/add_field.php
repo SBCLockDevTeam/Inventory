@@ -10,6 +10,7 @@
  *   allow_multiple       — 0|1 (applicable to photo/document/signature)
  *   instructions         — optional instructions text
  *   require_printed_name — 0|1 (applicable to signature)
+ *   publicly_viewable    — 0|1 (default 1; controls visibility on public QR page)
  *
  * Returns JSON: { success: bool, field_id?: int, error?: string }
  */
@@ -40,6 +41,7 @@ $required            = isset($_POST['required'])            ? 1 : 0;
 $allow_multiple      = isset($_POST['allow_multiple'])      ? 1 : 0;
 $instructions        = FormHelper::getPost('instructions');
 $require_printed_name = isset($_POST['require_printed_name']) ? 1 : 0;
+$publicly_viewable    = isset($_POST['publicly_viewable'])    ? 1 : 0;
 
 // Validation
 if (!FormHelper::isValidHex10($item_code)) {
@@ -89,9 +91,9 @@ while (DatabaseHelper::queryOne(
 
 $affected = DatabaseHelper::execute(
     "INSERT INTO item_fields
-         (item_public_code, field_key, label, field_type, required, sort_order, allow_multiple, instructions, require_printed_name)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [$item_code, $field_key, $label, $field_type, $required, $sort_order, $allow_multiple, $instructions, $require_printed_name]
+         (item_public_code, field_key, label, field_type, required, sort_order, allow_multiple, instructions, require_printed_name, publicly_viewable)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [$item_code, $field_key, $label, $field_type, $required, $sort_order, $allow_multiple, $instructions, $require_printed_name, $publicly_viewable]
 );
 
 if ($affected <= 0) {

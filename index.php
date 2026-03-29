@@ -97,6 +97,7 @@ if (!$item) {
             <?php if (!empty($fields)): ?>
             <div class="item-card-section field-values-section">
                 <?php foreach ($fields as $field):
+                    if (!$field['publicly_viewable']) { continue; }
                     $fid   = (int)$field['id'];
                     $ftype = $field['field_type'];
                     $sv    = $scalar_values[$fid] ?? null;

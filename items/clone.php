@@ -208,8 +208,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     DatabaseHelper::execute(
                         "INSERT INTO item_fields
                              (item_public_code, field_key, label, field_type, required, sort_order,
-                              allow_multiple, instructions, require_printed_name)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                              allow_multiple, instructions, require_printed_name, publicly_viewable)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         [
                             $item_code,
                             $sf['field_key'],
@@ -220,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $sf['allow_multiple'],
                             $sf['instructions'],
                             $sf['require_printed_name'],
+                            $sf['publicly_viewable'],
                         ]
                     );
 
@@ -308,8 +309,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             DatabaseHelper::execute(
                                 "INSERT INTO item_fields
                                      (item_public_code, field_key, label, field_type, required, sort_order,
-                                      allow_multiple, instructions, require_printed_name)
-                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                      allow_multiple, instructions, require_printed_name, publicly_viewable)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                                 [
                                     $new_desc_code,
                                     $df['field_key'],
@@ -320,6 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $df['allow_multiple'],
                                     $df['instructions'],
                                     $df['require_printed_name'],
+                                    $df['publicly_viewable'],
                                 ]
                             );
 

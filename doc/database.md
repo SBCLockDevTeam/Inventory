@@ -70,6 +70,7 @@ Admin-defined field definitions attached to a specific item. Determines which in
 | `allow_multiple` | `TINYINT(1)` | For `photo`/`document` fields: allow more than one upload |
 | `instructions` | `TEXT` | Optional help text shown below the field |
 | `require_printed_name` | `TINYINT(1)` | For `signature` fields: capture signer's printed name |
+| `publicly_viewable` | `TINYINT(1)` | If `1`, the field value is shown on the public QR scan page; default `1` |
 | `created_at` | `TIMESTAMP` | |
 | `updated_at` | `TIMESTAMP` | |
 
@@ -283,6 +284,7 @@ Migrations live in `db/migrations/` and are numbered sequentially. Apply them in
 | `004_add_printers.sql` | Creates `printers` table and inserts default printer rows |
 | `005_add_last_seen_to_items.sql` | Adds `last_seen_at` timestamp to `items` |
 | `006_add_preferred_printer_to_users.sql` | Adds `preferred_printer_id` FK to `users` |
+| `007_add_publicly_viewable_to_item_fields.sql` | Adds `publicly_viewable` column to `item_fields` (default `1`) |
 
 **Apply a migration:**
 ```bash
