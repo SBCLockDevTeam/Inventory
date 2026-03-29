@@ -74,6 +74,14 @@ $payload .= "\x1Bk\x0B\x1BX\x00\x30\x00";
 if (trim($description) !== '') {
     $payload .= wordwrap($description, LABEL_LINE_WIDTH, "\r\n", true) . "\r\n";
 }
+
+$payload .= "\x1B$\x08\x00";							// Absolute Horozontal Position
+$payload .= "\x1B(V\x22\x00\x0C\x00";					// Absolute Vertical Position
+$payload .="\x1b\x69\x51\x04\x02\x00\x00\x00\x00\x02\x00";
+$payload .="https://sbcqr/qr/?Q=792ddc3f5c";
+$payload .="\x5c\x5c\x5c";
+
+
 $payload .= "\x0c";                                      // Form feed – eject label
 
 // Use the compiled binary helper to send the print job.
