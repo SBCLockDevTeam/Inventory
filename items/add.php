@@ -7,12 +7,20 @@ require_once __DIR__ . '/../lib/database.php';
 require_once __DIR__ . '/../lib/form_helpers.php';
 require_once __DIR__ . '/../lib/location_helper.php';
 require_once __DIR__ . '/../lib/client_helper.php';
+require_once __DIR__ . '/../lib/printer_helper.php';
 
 $errors       = [];
 $success      = false;
 $public_code  = '';
 $name         = '';
 $description  = '';
+
+// Load active printers for the optional "Print Label" checkbox
+$printers            = PrinterHelper::getActivePrinters();
+$selected_printer_id = PrinterHelper::getSelectedPrinterId($printers);
+
+$print_items      = [];  // items queued for auto-print after success
+$print_printer_id = 0;
 $is_container = 0;
 $location_item_id = 'root';
 $parent_raw = '';
@@ -109,6 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             DatabaseHelper::commit();
             $success          = true;
+
+            // Build the print queue before resetting form vars
+            $print_printer_id = (int)FormHelper::getPost('printer_id');
+            if (!empty($_POST['print_label']) && $print_printer_id > 0) {
+                foreach ($added_items as $_ai) {
+                    $print_items[] = [
+                        'code'        => $_ai['code'],
+                        'name'        => $_ai['name'],
+                        'description' => $description,
+                    ];
+                }
+            }
+
             // Suggest a fresh unique ID ready for the next item
             $public_code      = DatabaseHelper::generateUniqueCode();
             $name             = '';
@@ -218,10 +239,12 @@ if ($location_item_id === 'root' || $location_item_id === '') {
                        style="width:4.5rem; text-align:center;"
                        title="Number of copies to create">
                 <label for="add_count" style="margin-left:0.25rem;">copies</label>
+                <?php include __DIR__ . '/../templates/common/print_label_row.php'; ?>
                 <a href="<?php echo BASE_PATH; ?>/items/" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
+    <script src="<?php echo JS_PATH; ?>pages/print_label.js"></script>
     <script>
     (function () {
         var countInput   = document.getElementById('add_count');
@@ -240,5 +263,13 @@ if ($location_item_id === 'root' || $location_item_id === '') {
         countInput.addEventListener('change', toggleFields);
         toggleFields();
     }());
+
+    <?php if (!empty($print_items)): ?>
+    // Auto-print labels for newly created items
+    window.autoPrintLabels(
+        <?php echo json_encode($print_items, JSON_HEX_TAG | JSON_HEX_AMP); ?>,
+        <?php echo (int)$print_printer_id; ?>
+    );
+    <?php endif; ?>
     </script>
     <?php include __DIR__ . '/../templates/common/footer.php'; ?>

@@ -9,9 +9,54 @@
  *   browsers and devices.
  * - The "Print Label" button sends an AJAX POST to /api/print.php and
  *   shows a brief status message in the #print-status span.
+ *
+ * Auto-print helper (used by add / edit / clone pages):
+ * - window.autoPrintLabels(items, printerId) fires a print job for each
+ *   item in the array immediately (no user interaction required).
+ *   Each item: { code, name, description }
  */
 (function () {
     'use strict';
+
+    /**
+     * Fire a print job for every item in the array.
+     * Errors are surfaced via window.showError().
+     *
+     * @param {Array}  items     [{code, name, description}, …]
+     * @param {number} printerId Printer ID to send to.
+     */
+    window.autoPrintLabels = function (items, printerId) {
+        if (!items || !items.length) { return; }
+        if (!printerId) {
+            console.warn('autoPrintLabels: no printer ID supplied');
+            return;
+        }
+
+        items.forEach(function (item) {
+            var fd = new FormData();
+            fd.append('printer_id',  String(printerId));
+            fd.append('item_name',   item.name);
+            fd.append('description', item.description);
+            fd.append('item_code',   item.code);
+
+            fetch(BASE_PATH + '/api/print.php', { method: 'POST', body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!d.success) {
+                        window.showError(
+                            'Print failed for "' + item.name + '": ' + (d.error || 'Unknown error'),
+                            'error'
+                        );
+                    }
+                })
+                .catch(function (e) {
+                    window.showError(
+                        'Print request failed for "' + item.name + '": ' + e.message,
+                        'error'
+                    );
+                });
+        });
+    };
 
     document.addEventListener('DOMContentLoaded', function () {
 
