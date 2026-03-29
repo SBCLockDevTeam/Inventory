@@ -3,19 +3,74 @@
  *
  * Handles expand/collapse for the hierarchical item tree view,
  * and client-side filtering to highlight matching nodes.
+ *
+ * Expand/collapse state is stored in sessionStorage so it survives
+ * navigation within the same browser tab but resets when the tab is closed.
  */
 document.addEventListener('DOMContentLoaded', function () {
+
+    var SESSION_KEY = 'itemTreeExpanded';
+
+    // ---------------------------------------------------------------
+    // sessionStorage helpers – store a map of { itemId: true } for
+    // every node that is currently open.
+    // ---------------------------------------------------------------
+    function loadExpanded() {
+        try {
+            var raw = sessionStorage.getItem(SESSION_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveExpanded(map) {
+        try {
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(map));
+        } catch (e) { /* sessionStorage unavailable – silent fail */ }
+    }
+
+    function setNodeExpanded(itemId, open) {
+        var map = loadExpanded();
+        if (open) {
+            map[itemId] = true;
+        } else {
+            delete map[itemId];
+        }
+        saveExpanded(map);
+    }
+
+    // ---------------------------------------------------------------
+    // Restore persisted expand/collapse state on page load
+    // ---------------------------------------------------------------
+    function applyExpanded(expandedMap) {
+        document.querySelectorAll('.tree-node[data-item-id]').forEach(function (node) {
+            var subtree = node.querySelector(':scope > .item-tree');
+            var toggle  = node.querySelector(':scope > .tree-row .tree-toggle');
+            if (!subtree || !toggle) { return; }
+            var open = !!expandedMap[node.getAttribute('data-item-id')];
+            subtree.classList.toggle('tree-open', open);
+            toggle.classList.toggle('open', open);
+            toggle.setAttribute('aria-expanded', String(open));
+        });
+    }
+
+    applyExpanded(loadExpanded());
 
     // ---------------------------------------------------------------
     // Expand / Collapse individual nodes
     // ---------------------------------------------------------------
     document.querySelectorAll('.tree-toggle').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            var subtree = this.closest('.tree-node').querySelector(':scope > .item-tree');
+            var treeNode = this.closest('.tree-node');
+            var subtree  = treeNode ? treeNode.querySelector(':scope > .item-tree') : null;
             if (!subtree) { return; }
             var open = subtree.classList.toggle('tree-open');
             this.classList.toggle('open', open);
             this.setAttribute('aria-expanded', String(open));
+            // Persist the change for the current session
+            var itemId = treeNode.getAttribute('data-item-id');
+            if (itemId) { setNodeExpanded(itemId, open); }
         });
     });
 
@@ -27,13 +82,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (expandAllBtn) {
         expandAllBtn.addEventListener('click', function () {
+            var map = {};
             document.querySelectorAll('.item-tree .item-tree').forEach(function (ul) {
                 ul.classList.add('tree-open');
             });
-            document.querySelectorAll('.tree-toggle').forEach(function (btn) {
-                btn.classList.add('open');
-                btn.setAttribute('aria-expanded', 'true');
+            document.querySelectorAll('.tree-node[data-item-id]').forEach(function (node) {
+                var subtree = node.querySelector(':scope > .item-tree');
+                var toggle  = node.querySelector(':scope > .tree-row .tree-toggle');
+                if (!subtree || !toggle) { return; }
+                toggle.classList.add('open');
+                toggle.setAttribute('aria-expanded', 'true');
+                map[node.getAttribute('data-item-id')] = true;
             });
+            saveExpanded(map);
         });
     }
 
@@ -46,28 +107,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.remove('open');
                 btn.setAttribute('aria-expanded', 'false');
             });
+            saveExpanded({});
         });
     }
 
     // ---------------------------------------------------------------
     // Client-side live filter
     // Highlights matching nodes and expands their ancestors.
+    // When the filter is cleared the persisted state is re-applied.
     // ---------------------------------------------------------------
     var filterInput = document.getElementById('tree-filter-input');
     if (!filterInput) { return; }
 
     filterInput.addEventListener('input', function () {
-        var query = this.value.trim().toLowerCase();
+        var query    = this.value.trim().toLowerCase();
         var allNodes = document.querySelectorAll('.tree-node');
 
         if (!query) {
-            // Reset: remove highlights and collapse back to default
+            // Remove highlights, then restore the saved expand/collapse state
             allNodes.forEach(function (node) {
                 node.style.display = '';
                 node.classList.remove('tree-match');
                 var label = node.querySelector(':scope > .tree-row .tree-label');
                 if (label) { label.classList.remove('tree-match'); }
             });
+            // Collapse everything first, then re-apply persisted state
             document.querySelectorAll('.item-tree .item-tree').forEach(function (ul) {
                 ul.classList.remove('tree-open');
             });
@@ -75,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.remove('open');
                 btn.setAttribute('aria-expanded', 'false');
             });
+            applyExpanded(loadExpanded());
             return;
         }
 
