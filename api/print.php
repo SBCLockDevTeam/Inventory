@@ -62,8 +62,10 @@ if (!$printer['is_active']) {
 $payload  = "\x1b\x69\x61\x00";                         // Brother mode switch (ESC i a NUL)
 $payload .= "\x1b@";                                    // Initialize printer
 //$payload .= "\x1b\x6b\x0b";                             // Select font (Letter Gothic Bold)
-$payload .= "\x1b\x6b\x01";                             // Select font (Sans Serif)
-$payload .= "\x1b\x45";                                 // Select font (Bold)
+$payload .= "\x1B$\x19\x00";
+$payload .= "\x1B(V\x02\x00\x0C\x00";
+$payload .= "\x1Bk\x0B\x1BX\x00&\x00";
+$payload .= "\x1b\x45";
 
 	
 if (trim($description) !== '') {
