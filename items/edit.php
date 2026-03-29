@@ -156,6 +156,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ----------------------------------------------------------------
+    // Part 3: Save publicly_viewable flag for each field (admin only)
+    // ----------------------------------------------------------------
+    if ($active_user_is_admin) {
+        foreach ($fields as $field) {
+            $field_id          = (int)$field['id'];
+            $pv_key            = 'field_pv_' . $field_id;
+            $publicly_viewable = isset($_POST[$pv_key]) ? 1 : 0;
+            DatabaseHelper::execute(
+                "UPDATE item_fields SET publicly_viewable = ? WHERE id = ? AND item_public_code = ?",
+                [$publicly_viewable, $field_id, $item_id]
+            );
+        }
+    }
+
     if (empty($errors)) {
         $user_label = $active_user ? $active_user['name'] : null;
         FieldHelper::logGeneral('item_updated', $item_id, null, null, null, null, $user_label);
@@ -297,6 +312,7 @@ $page_title = 'Edit Item – ' . htmlspecialchars($item['name']);
                             title="Delete this field">✕ Delete Field</button>
                     <label class="checkbox-label field-publicly-viewable-label">
                         <input type="checkbox" class="field-publicly-viewable"
+                               name="field_pv_<?php echo $fid; ?>"
                                data-field-id="<?php echo $fid; ?>"
                                data-item-code="<?php echo htmlspecialchars($item['public_code']); ?>"
                                <?php echo $field['publicly_viewable'] ? 'checked' : ''; ?>>
