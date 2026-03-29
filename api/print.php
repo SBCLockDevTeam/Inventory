@@ -60,9 +60,12 @@ if (!$printer['is_active']) {
 // ESC k        — select font
 // FF           — form feed / eject label
 $payload  = "\x1b\x69\x61\x00";                         // Brother mode switch (ESC i a NUL)
-$payload .= "\x1b@";                                     // Initialize printer
-$payload .= "\x1b\x6b\x0b";                             // Select font (Letter Gothic Bold)
+$payload .= "\x1b@";                                    // Initialize printer
+//$payload .= "\x1b\x6b\x0b";                             // Select font (Letter Gothic Bold)
+$payload .= "\x1b\x6b\x01";                             // Select font (Sans Serif)
+$payload .= "\x1b\x45";                                 // Select font (Bold)
 
+	
 if (trim($description) !== '') {
     $payload .= wordwrap($description, LABEL_LINE_WIDTH, "\r\n", true) . "\r\n";
 }
