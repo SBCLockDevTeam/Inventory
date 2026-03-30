@@ -115,7 +115,7 @@ $payload .= "\x1b\x69\x51\x07\x02\x00\x00\x00\x00\x04\x00";
 $payload .= BASE_URL . "/?Q=" . $item_code;
 $payload .= "\x5c\x5c\x5c";
 
-$payload .= "\x1B$\x41\x02";                            // Absolute Horizontal Position
+$payload .= "\x1B$\x01\x03";                            // Absolute Horizontal Position
 $payload .= "\x1B(V\x02\x00\x48\x00";                   // Absolute Vertical Position
 $payload .= "\x1b\x69\x51\x04\x02\x00\x00\x00\x00\x04\x00";
 $payload .= $item_code;
