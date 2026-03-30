@@ -11,6 +11,10 @@
  *
  * Returns JSON: { success: bool, error?: string }
  *
+ * Email is routed through the foreign SMTP relay defined in config/settings.php
+ * (SMTP_HOST / SMTP_PORT / SMTP_ENCRYPTION) using the authenticated credentials
+ * in config/secrets.php (EMAIL_USER / EMAIL_PASS).
+ *
  * NOTE: We read raw POST values here (trimmed, not HTML-encoded) because
  * FormHelper::sanitize() applies htmlspecialchars which HTML-encodes the
  * email address, causing filter_var() email validation to fail and the
@@ -18,7 +22,10 @@
  * HTML-encoding is for output/display time, not input-reading time.
  */
 require_once __DIR__ . '/../config/settings.php';
+$_secrets = __DIR__ . '/../config/secrets.php';
+if (file_exists($_secrets)) { require_once $_secrets; }
 require_once __DIR__ . '/../lib/form_helpers.php';
+require_once __DIR__ . '/../lib/mailer.php';
 
 header('Content-Type: application/json');
 
@@ -60,16 +67,15 @@ $category_labels = [
 ];
 $category_label = $category_labels[$category] ?? 'Feedback';
 
-$to = 'info@securitybuildingcontrols.com';
+// Use the authenticated outbox address from secrets.php as the recipient,
+// falling back to SMTP_TO (settings.php) or the hardcoded default.
+$to = defined('EMAIL_USER') && EMAIL_USER !== '' ? EMAIL_USER
+    : (defined('SMTP_TO') ? SMTP_TO : 'info@securitybuildingcontrols.com');
 
 // Strip newlines from header values to prevent email header injection attacks
 $safe_email   = str_replace(["\r", "\n"], '', $email);
 $safe_name    = str_replace(["\r", "\n"], '', $name);
 $safe_subject = str_replace(["\r", "\n"], '', $subject);
-
-$headers = "From: QR Inventory System <noreply@sbcqr.com>\r\n" .
-           "Reply-To: {$safe_name} <{$safe_email}>\r\n" .
-           "Content-Type: text/plain; charset=UTF-8\r\n";
 
 $mail_subject = "[Inventory Feedback] [{$category_label}] {$safe_subject}";
 
@@ -79,9 +85,17 @@ $mail_body = "Category: {$category_label}\n" .
              str_repeat('-', 60) . "\n" .
              "{$message}\n";
 
-// mail() is used here; on a real server this will deliver the email.
-// If mail() is not configured, the call fails silently and we still return success
-// so the user experience is not degraded in development.
-@mail($to, $mail_subject, $mail_body, $headers);
+// Send via the configured SMTP relay (foreign mail server).
+// Credentials and host settings come from config/settings.php and config/secrets.php.
+try {
+    $mailer = new SmtpMailer();
+    $mailer->send($to, $mail_subject, $mail_body, $safe_name, $safe_email);
+} catch (Exception $e) {
+    // Log the error server-side but do not expose internals to the client
+    error_log('ask_changes SMTP error: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Failed to send email. Please try again later.']);
+    exit;
+}
 
 echo json_encode(['success' => true]);

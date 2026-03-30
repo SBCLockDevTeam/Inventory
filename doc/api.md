@@ -260,7 +260,11 @@ Submit a feedback, feature request, or bug report.
 { "success": true }
 ```
 
-Sends an email to the configured admin/support address using the credentials in `config/secrets.php` (`EMAIL_USER`, `EMAIL_PASS`).
+Sends an email to `EMAIL_USER` from `config/secrets.php` (the SMTP account address),
+falling back to `SMTP_TO` in `config/settings.php` if `EMAIL_USER` is not set.
+Email is routed through the external SMTP relay defined by `SMTP_HOST`, `SMTP_PORT`,
+and `SMTP_ENCRYPTION` in `config/settings.php`, authenticated with `EMAIL_USER` /
+`EMAIL_PASS` from `config/secrets.php`.
 
 ---
 
