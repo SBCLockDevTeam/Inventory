@@ -115,6 +115,12 @@ $payload .= "\x1b\x69\x51\x07\x02\x00\x00\x00\x00\x04\x00";
 $payload .= BASE_URL . "/?Q=" . $item_code;
 $payload .= "\x5c\x5c\x5c";
 
+$payload .= "\x1B$\x01\x02";                            // Absolute Horizontal Position
+$payload .= "\x1B(V\x02\x00\x48\x00";                   // Absolute Vertical Position
+$payload .= "\x1b\x69\x51\x07\x02\x00\x00\x00\x00\x04\x00";
+$payload .= $item_code;
+$payload .= "\x5c\x5c\x5c";
+
 $payload .= "\x0c";                                     // Form feed – eject label
 
 // Use the compiled binary helper to send the print job.
