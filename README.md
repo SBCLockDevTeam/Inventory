@@ -1,6 +1,6 @@
-# QR Inventory System
+# QR Inventory/Asset Tracking System
 
-This is a 2nd attempt at a QR Inventory system for SBC.
+QR Inventory/Asset tracking system for SBC.
 
 It uses PHP, CSS, JavaScript, MariaDB.
 
@@ -39,7 +39,6 @@ The application includes a compiled C helper (`bin/printer`) for sending ESC/P l
 ```bash
 gcc -o /var/www/html/sbcqr/qr/bin/printer /var/www/html/sbcqr/qr/bin/printer.c
 ```
-
 No special libraries are required — only standard `gcc` and POSIX system libraries (available on any standard Linux server).
 
 **To verify it compiled correctly:**
@@ -50,7 +49,15 @@ No special libraries are required — only standard `gcc` and POSIX system libra
 
 You should see: `Usage: printer <host> <port>`
 
-**Usage:** The binary reads a raw ESC/P payload from stdin and sends it to the printer at `<host>:<port>` over TCP. It accepts both hostnames and IP addresses.
+**Usage:** The binary reads a raw ESC/P payload from stdin and sends it to the printer at `<host>:<port>` over TCP. It accepts 
+both hostnames and IP addresses.
+
+**Brother TD-4D Printer:**
+
+The Brother TD-4420DN uses ESC/P commands. AI agents will often removed the required initialization code. 
+The fault is not intermittent: after a power cycle, the printer won’t work until it’s initialized. 
+Once initialized, it prints reliably. 
+Best practice: send the init sequence at the start of every print job.
 
 ### 4. Set file permissions
 
@@ -62,12 +69,12 @@ chmod +x /var/www/html/sbcqr/qr/bin/printer
 
 ## Dependencies
 
-| Dependency | Version      | Notes                        |
-|------------|--------------|------------------------------|
-| PHP        | 7.4+         |                              |
-| MariaDB    | 10.x+        | Database: `SBCInv`           |
-| Apache     | 2.4+         | Document root: `/var/www/html/sbcqr/` |
-| gcc        | Any modern   | Required to compile `bin/printer.c` |
+| Dependency | Version      | Notes                                  |
+|------------|--------------|----------------------------------------|
+| PHP        | 7.4+         |                                        |
+| MariaDB    | 10.x+        | Database: `SBCInv`                     |
+| Apache     | 2.4+         | Document root: `/var/www/html/sbcqr/`  |
+| gcc        | Any modern   | Required to compile `bin/printer.c`    |
 
 ---
 
