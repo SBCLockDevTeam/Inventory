@@ -192,6 +192,13 @@ Once this user logs in via Entra for the first time, their `entra_oid` is writte
 cd /var/www/html/sbcqr/qr
 git pull
 
+# Re-apply uploads ownership after every pull.
+# git pull runs as root, which resets directory ownership on any
+# touched paths. PHP (www-data) must own the uploads tree to create
+# per-item subdirectories and write uploaded files.
+chown -R www-data:www-data /var/www/html/sbcqr/qr/uploads/
+chmod -R 775 /var/www/html/sbcqr/qr/uploads/
+
 # If CHANGELOG.md lists new migrations, apply them:
 mysql -u SBCInv -p SBCInv < db/migrations/00N_name.sql
 

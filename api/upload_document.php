@@ -74,7 +74,15 @@ finfo_close($finfo);
 // Build upload directory
 $upload_server_dir = SERVER_ROOT . '/uploads/documents/' . $item_code . '/';
 if (!is_dir($upload_server_dir)) {
-    mkdir($upload_server_dir, 0755, true);
+    // Use 0775 so the directory is group-writable (www-data:www-data ownership set
+    // at deployment). chmod() is called explicitly because mkdir()'s mode is subject
+    // to the process umask, which can silently strip the group-write bit.
+    if (!mkdir($upload_server_dir, 0775, true)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Could not create upload directory']);
+        exit;
+    }
+    chmod($upload_server_dir, 0775);
 }
 
 $original_ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
