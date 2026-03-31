@@ -78,7 +78,15 @@ if ($img_data === false || strlen($img_data) < 10) {
 
 $upload_dir = SERVER_ROOT . '/uploads/signatures/' . $item_code . '/';
 if (!is_dir($upload_dir)) {
-    mkdir($upload_dir, 0755, true);
+    // Use 0775 so the directory is group-writable (www-data:www-data ownership set
+    // at deployment). chmod() is called explicitly because mkdir()'s mode is subject
+    // to the process umask, which can silently strip the group-write bit.
+    if (!mkdir($upload_dir, 0775, true)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Could not create upload directory']);
+        exit;
+    }
+    chmod($upload_dir, 0775);
 }
 
 $filename = bin2hex(random_bytes(8)) . '.png';
