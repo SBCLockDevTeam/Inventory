@@ -19,10 +19,10 @@ const TEMPLATES_PATH = SERVER_ROOT . '/templates/';
 
 // Outbound SMTP relay (foreign mail server)
 // Credentials (EMAIL_USER / EMAIL_PASS) are stored in config/secrets.php
-const SMTP_HOST       = 'mail.sbcqr.com'; // SMTP server hostname
+const SMTP_HOST       = 'smtp.ionos.com'; // SMTP server hostname
 const SMTP_PORT       = 587;              // 587 = STARTTLS, 465 = SSL/TLS
 const SMTP_ENCRYPTION = 'tls';            // 'tls' (STARTTLS) or 'ssl'
-const SMTP_FROM_ADDR  = 'noreply@sbcqr.com';
+const SMTP_FROM_ADDR  = 'sbcqr@wifld.com';
 const SMTP_FROM_NAME  = 'QR Inventory System';
-const SMTP_TO         = 'info@securitybuildingcontrols.com';
+const SMTP_TO         = 'lockdevteam@securitybuildingcontrols.com';
 ?>
