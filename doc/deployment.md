@@ -146,8 +146,20 @@ The application sits at `https://sbcqr.com/qr/`. A minimal Apache virtual host:
     SSLCertificateFile    /etc/ssl/certs/sbcqr.com.crt
     SSLCertificateKeyFile /etc/ssl/private/sbcqr.com.key
 
-    <Directory /var/www/html/sbcqr/qr>
+    # Grant access to the DocumentRoot (parent of the app).
+    <Directory /var/www/html/sbcqr>
         AllowOverride None
+        Require all granted
+    </Directory>
+
+    # The app lives one level deeper at /qr/.
+    # AllowOverride All is required so Apache reads the .htaccess file
+    # that ships with the repository at qr/.htaccess.  That file raises
+    # PHP's upload ceiling to 50 MB (photos: 10 MB app limit, documents:
+    # 50 MB app limit).  Without it, PHP falls back to its built-in 2 MB
+    # default and every upload fails with "File too large".
+    <Directory /var/www/html/sbcqr/qr>
+        AllowOverride All
         Require all granted
     </Directory>
 
@@ -156,7 +168,18 @@ The application sits at `https://sbcqr.com/qr/`. A minimal Apache virtual host:
 </VirtualHost>
 ```
 
+> **Where does `.htaccess` live?**
+> The `.htaccess` file is stored in the **repository root**, which is cloned to `/var/www/html/sbcqr/qr/`. So on disk it sits at `/var/www/html/sbcqr/qr/.htaccess` — inside the `qr/` sub-directory, **not** at the `DocumentRoot` (`/var/www/html/sbcqr/`). This is correct: the `<Directory /var/www/html/sbcqr/qr>` block with `AllowOverride All` governs exactly that directory, so Apache will read and apply the file.
+
 > **HTTPS is required.** Microsoft Entra ID will reject non-HTTPS redirect URIs.
+
+### After changing the Apache config
+
+Whenever you edit the virtual host file you must reload Apache for the change to take effect:
+
+```bash
+sudo systemctl reload apache2
+```
 
 ---
 
@@ -239,3 +262,74 @@ These files must be created or managed manually on each server:
 | `config/secrets.php` | Contains credentials |
 | `bin/printer` | Platform-specific compiled binary |
 | `uploads/` | User data (photos, documents, signatures) |
+
+---
+
+## Troubleshooting: "File too large (exceeds server upload limit)"
+
+If you see this error when uploading a photo or document, it means Apache is ignoring the `.htaccess` file that raises PHP's upload limits. Follow these steps exactly — they require SSH access to the server.
+
+### Step-by-step fix
+
+**1. Open the Apache virtual host file.**
+
+The file is usually named after your site. Run this command to find it:
+
+```bash
+ls /etc/apache2/sites-enabled/
+```
+
+You will see one or more `.conf` files. Open the one for `sbcqr.com`:
+
+```bash
+sudo nano /etc/apache2/sites-enabled/sbcqr.com.conf
+```
+
+(Replace `sbcqr.com.conf` with the actual file name you saw.)
+
+**2. Find the `<Directory /var/www/html/sbcqr/qr>` block and change `AllowOverride`.**
+
+Look for a section that looks like this (it targets the `qr` sub-directory, not the DocumentRoot):
+
+```apache
+<Directory /var/www/html/sbcqr/qr>
+    AllowOverride None
+    Require all granted
+</Directory>
+```
+
+Change `AllowOverride None` to `AllowOverride All` **only in the `qr` block**:
+
+```apache
+<Directory /var/www/html/sbcqr/qr>
+    AllowOverride All
+    Require all granted
+</Directory>
+```
+
+> **Why the `qr` block, not the parent?** The repository is cloned into `/var/www/html/sbcqr/qr/`, so the `.htaccess` file lives at `/var/www/html/sbcqr/qr/.htaccess`. Apache reads `.htaccess` for a directory only when `AllowOverride` permits it for **that exact directory**. Setting it on the `qr` block is both sufficient and more targeted — it does not loosen permissions for anything else under the DocumentRoot (`/var/www/html/sbcqr/`).
+
+Save the file: press **Ctrl + O**, then **Enter**, then **Ctrl + X** to exit nano.
+
+**3. Reload Apache so the change takes effect.**
+
+```bash
+sudo systemctl reload apache2
+```
+
+You should see no error output. If you do, run `sudo apache2ctl configtest` to check for typos.
+
+**4. Test the fix.**
+
+Log into the app at `https://sbcqr.com/qr/` and try uploading a photo again. It should now succeed for files up to 10 MB (photos) or 50 MB (documents).
+
+### Why this works
+
+The repository ships with a `.htaccess` file at `qr/.htaccess` that tells PHP to allow larger uploads:
+
+```
+php_value upload_max_filesize 50M
+php_value post_max_size       55M
+```
+
+Apache only reads `.htaccess` files when `AllowOverride` is set to something other than `None`. With `AllowOverride None`, the file is completely ignored and PHP falls back to its tiny built-in default (usually 2 MB), causing every upload to fail.
