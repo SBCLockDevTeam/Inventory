@@ -84,5 +84,23 @@ class FormHelper {
     public static function isValidNumeric($value) {
         return is_numeric($value);
     }
+
+    /**
+     * Translate a PHP $_FILES error code into a human-readable message.
+     * @param int $error_code  Value of $_FILES[…]['error']
+     * @return string
+     */
+    public static function uploadErrorMessage($error_code) {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE   => 'File too large (exceeds server upload limit)',
+            UPLOAD_ERR_FORM_SIZE  => 'File too large (exceeds form upload limit)',
+            UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded — please try again',
+            UPLOAD_ERR_NO_FILE    => 'No file was selected',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server configuration error: missing temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Server error: failed to write file to disk',
+            UPLOAD_ERR_EXTENSION  => 'Upload blocked by server extension',
+        ];
+        return $messages[$error_code] ?? 'Upload failed (error ' . $error_code . ')';
+    }
 }
 ?>

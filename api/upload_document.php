@@ -54,7 +54,7 @@ if (!$field) {
 if (empty($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
     $err_code = $_FILES['document']['error'] ?? -1;
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'No file uploaded (error ' . $err_code . ')']);
+    echo json_encode(['success' => false, 'error' => FormHelper::uploadErrorMessage($err_code)]);
     exit;
 }
 

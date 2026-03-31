@@ -72,7 +72,7 @@ if (!$field['allow_multiple']) {
 if (empty($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
     $err_code = $_FILES['photo']['error'] ?? -1;
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'No file uploaded (error ' . $err_code . ')']);
+    echo json_encode(['success' => false, 'error' => FormHelper::uploadErrorMessage($err_code)]);
     exit;
 }
 
