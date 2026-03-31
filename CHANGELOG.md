@@ -6,6 +6,25 @@
 
 ## Changes
 
+### 2026-03-31 — Fix image/document upload "File too large" error
+
+The previous fix (adding PHP upload-limit settings to `.htaccess`) only works on servers that use Apache mod_php with `AllowOverride All`. Most modern servers use **PHP-FPM**, which ignores `.htaccess` `php_value` directives entirely and reads `.user.ini` instead.
+
+- **`.user.ini`** (new file): PHP-FPM per-directory settings file. Sets `upload_max_filesize = 50M` and `post_max_size = 55M`. PHP-FPM reads this automatically from the script directory without any Apache configuration changes.
+- **`bin/fix-upload-limits.sh`** (new file): One-shot server script. Verifies `.user.ini` is on disk, restarts PHP-FPM so settings take effect immediately, and patches the Apache virtual host config if needed for mod_php fallback.
+- **`doc/deployment.md`**: Troubleshooting section rewritten with a simple two-command fix and clearer explanation of why the error occurs.
+
+**Server setup instructions** (apply after pulling):
+1. Pull the latest code:
+   ```
+   cd /var/www/html/sbcqr/qr && git pull
+   ```
+2. Run the fix script:
+   ```
+   sudo bash /var/www/html/sbcqr/qr/bin/fix-upload-limits.sh
+   ```
+3. Try uploading a photo at `https://sbcqr.com/qr/`. It should now work.
+
 ### 2026-03-29 — Item tree expand/collapse state now persists across tabs and browser restarts
 
 The previous implementation stored the tree's open/collapsed state in `sessionStorage`,
