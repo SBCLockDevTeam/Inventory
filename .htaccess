@@ -1,0 +1,6 @@
+# Raise PHP upload limits to match the application's maximums.
+# Photos: up to 10 MB   (api/upload_photo.php)
+# Documents: up to 50 MB (api/upload_document.php)
+# post_max_size must exceed upload_max_filesize to include form fields.
+php_value upload_max_filesize 50M
+php_value post_max_size 55M

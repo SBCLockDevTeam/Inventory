@@ -105,7 +105,14 @@ var PhotoCapture = (function () {
     // ------------------------------------------------------------------
     // Upload the selected / captured file via AJAX
     // ------------------------------------------------------------------
+    var MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 MB — must match api/upload_photo.php
+
     function uploadFile(file) {
+        if (file.size > MAX_PHOTO_BYTES) {
+            alert('File too large (max 10 MB)');
+            return;
+        }
+
         var formData = new FormData();
         formData.append('photo',     file);
         formData.append('field_id',  _cfg.fieldId);
