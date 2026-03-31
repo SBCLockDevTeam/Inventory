@@ -17,12 +17,12 @@ const CONFIG_PATH = SERVER_ROOT . '/config/';
 const LIB_PATH = SERVER_ROOT . '/lib/'; 
 const TEMPLATES_PATH = SERVER_ROOT . '/templates/'; 
 
-// Outbound SMTP relay (foreign mail server)
+// Outbound SMTP relay (Microsoft 365 SMTP AUTH - client submission)
 // Credentials (EMAIL_USER / EMAIL_PASS) are stored in config/secrets.php
-const SMTP_HOST       = 'mail.sbcqr.com'; // SMTP server hostname
-const SMTP_PORT       = 587;              // 587 = STARTTLS, 465 = SSL/TLS
-const SMTP_ENCRYPTION = 'tls';            // 'tls' (STARTTLS) or 'ssl'
-const SMTP_FROM_ADDR  = 'noreply@sbcqr.com';
+const SMTP_HOST       = 'smtp.office365.com';
+const SMTP_PORT       = 587;              // STARTTLS
+const SMTP_ENCRYPTION = 'tls';            // STARTTLS
+const SMTP_FROM_ADDR  = 'noreply@sbcqr.com';  // keep if this mailbox/sender is allowed in M365
 const SMTP_FROM_NAME  = 'QR Inventory System';
 const SMTP_TO         = 'info@securitybuildingcontrols.com';
 ?>
