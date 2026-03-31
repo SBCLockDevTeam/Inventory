@@ -267,29 +267,89 @@ These files must be created or managed manually on each server:
 
 ## Troubleshooting: "File too large (exceeds server upload limit)"
 
-If you see this error when uploading a photo or document, it means Apache is ignoring the `.htaccess` file that raises PHP's upload limits. Follow these steps exactly — they require SSH access to the server.
+If you see this error when uploading a photo or document, follow the steps below. You will need SSH access to the server. If you are not sure how to SSH into the server, ask whoever manages it for you.
 
-### Step-by-step fix
+### Quick fix — two commands
 
-**1. Open the Apache virtual host file.**
+Open a terminal connected to the server (SSH) and run these **two commands in order**:
 
-The file is usually named after your site. Run this command to find it:
+```bash
+cd /var/www/html/sbcqr/qr && git pull
+```
+
+```bash
+sudo bash /var/www/html/sbcqr/qr/bin/fix-upload-limits.sh
+```
+
+That is all. The script will:
+1. Confirm that the `.user.ini` file (which raises PHP's upload limit) exists on disk.
+2. Restart PHP-FPM so the new limit takes effect immediately.
+3. Check the Apache configuration and patch it if needed.
+4. Tell you whether everything worked.
+
+After the script finishes, go to `https://sbcqr.com/qr/` and try uploading a photo again. It should succeed.
+
+---
+
+### Why this happens
+
+PHP has a built-in file-size limit (usually **2 MB**) that blocks large uploads before the application even sees the file. The repository ships with two configuration files that raise this limit to **50 MB**:
+
+| File | Used by |
+|---|---|
+| `.htaccess` (in the repo root) | Apache + mod_php |
+| `.user.ini` (in the repo root) | PHP-FPM (most modern servers) |
+
+If either file is missing, or if PHP-FPM has not restarted since the file was added, PHP still uses its old 2 MB default and rejects large uploads.
+
+Running `git pull` ensures both files are on disk. Running the fix script restarts PHP-FPM so the new settings take effect immediately.
+
+---
+
+### Manual steps (if the script does not work)
+
+If the quick fix above does not resolve the problem, follow these steps manually.
+
+**1. Check what PHP thinks the limit is.**
+
+```bash
+php -r "echo ini_get('upload_max_filesize');"
+```
+
+- If it prints `50M` — PHP has the right limit. The problem is something else; check Apache error logs (`sudo tail /var/log/apache2/error.log`).
+- If it prints `2M` or another small value — PHP has not picked up the new settings yet. Continue below.
+
+**2. Find which PHP-FPM service is running.**
+
+```bash
+systemctl list-units --type=service | grep fpm
+```
+
+You will see something like `php8.2-fpm.service`. Note the version number.
+
+**3. Restart PHP-FPM** (replace `8.2` with your version):
+
+```bash
+sudo systemctl restart php8.2-fpm
+```
+
+**4. Check the Apache virtual host (mod_php servers only).**
+
+If restarting PHP-FPM did not help, your server may use mod_php instead of PHP-FPM. In that case, the `.htaccess` file must be read by Apache, which requires `AllowOverride All` in the virtual host config.
+
+Find the config file:
 
 ```bash
 ls /etc/apache2/sites-enabled/
 ```
 
-You will see one or more `.conf` files. Open the one for `sbcqr.com`:
+Open the one for `sbcqr.com` (replace the filename with what you see):
 
 ```bash
 sudo nano /etc/apache2/sites-enabled/sbcqr.com.conf
 ```
 
-(Replace `sbcqr.com.conf` with the actual file name you saw.)
-
-**2. Find the `<Directory /var/www/html/sbcqr/qr>` block and change `AllowOverride`.**
-
-Look for a section that looks like this (it targets the `qr` sub-directory, not the DocumentRoot):
+Find the block for the `qr` directory:
 
 ```apache
 <Directory /var/www/html/sbcqr/qr>
@@ -298,7 +358,7 @@ Look for a section that looks like this (it targets the `qr` sub-directory, not 
 </Directory>
 ```
 
-Change `AllowOverride None` to `AllowOverride All` **only in the `qr` block**:
+Change `AllowOverride None` to `AllowOverride All`:
 
 ```apache
 <Directory /var/www/html/sbcqr/qr>
@@ -307,29 +367,10 @@ Change `AllowOverride None` to `AllowOverride All` **only in the `qr` block**:
 </Directory>
 ```
 
-> **Why the `qr` block, not the parent?** The repository is cloned into `/var/www/html/sbcqr/qr/`, so the `.htaccess` file lives at `/var/www/html/sbcqr/qr/.htaccess`. Apache reads `.htaccess` for a directory only when `AllowOverride` permits it for **that exact directory**. Setting it on the `qr` block is both sufficient and more targeted — it does not loosen permissions for anything else under the DocumentRoot (`/var/www/html/sbcqr/`).
+Save with **Ctrl + O**, **Enter**, then **Ctrl + X**.
 
-Save the file: press **Ctrl + O**, then **Enter**, then **Ctrl + X** to exit nano.
-
-**3. Reload Apache so the change takes effect.**
+Reload Apache:
 
 ```bash
 sudo systemctl reload apache2
 ```
-
-You should see no error output. If you do, run `sudo apache2ctl configtest` to check for typos.
-
-**4. Test the fix.**
-
-Log into the app at `https://sbcqr.com/qr/` and try uploading a photo again. It should now succeed for files up to 10 MB (photos) or 50 MB (documents).
-
-### Why this works
-
-The repository ships with a `.htaccess` file at `qr/.htaccess` that tells PHP to allow larger uploads:
-
-```
-php_value upload_max_filesize 50M
-php_value post_max_size       55M
-```
-
-Apache only reads `.htaccess` files when `AllowOverride` is set to something other than `None`. With `AllowOverride None`, the file is completely ignored and PHP falls back to its tiny built-in default (usually 2 MB), causing every upload to fail.
