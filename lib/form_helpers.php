@@ -37,7 +37,9 @@ class FormHelper {
         if (is_array($input)) {
             return array_map([self::class, 'sanitize'], $input);
         }
-        return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+        $val = trim((string)$input);
+        $val = str_replace("\0", '', $val); // remove null bytes
+        return $val;
     }
 
     /**
