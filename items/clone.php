@@ -83,13 +83,23 @@ function cloneNextUniqueName(string $base, int &$num): string {
  * BASE_PATH . '/uploads/photos/{item_code}/{filename}'.
  * We derive the server filesystem path, copy the file, then return the new URL-relative path.
  *
- * @param  string $src_file_path  URL-relative path stored in the DB
+ * @param  string $src_file_path  URL-relative path stored in the DB (must start with BASE_PATH)
  * @param  string $dest_item_code Public code of the destination item
- * @param  string $upload_subdir  One of: 'photos', 'documents', 'signatures'
+ * @param  string $upload_subdir  Must be one of: 'photos', 'documents', 'signatures'
  * @return string|null            New URL-relative path, or null if the copy failed
  */
 function cloneCopyFile(string $src_file_path, string $dest_item_code, string $upload_subdir): ?string {
-    $src_server_path = SERVER_ROOT . str_replace(BASE_PATH, '', $src_file_path);
+    // Whitelist the upload subdirectory to prevent path traversal
+    if (!in_array($upload_subdir, ['photos', 'documents', 'signatures'], true)) {
+        return null;
+    }
+
+    // Ensure the stored path originates from the expected BASE_PATH prefix
+    if (strpos($src_file_path, BASE_PATH . '/') !== 0) {
+        return null;
+    }
+
+    $src_server_path = SERVER_ROOT . substr($src_file_path, strlen(BASE_PATH));
     if (!file_exists($src_server_path)) {
         return null;
     }
@@ -102,13 +112,18 @@ function cloneCopyFile(string $src_file_path, string $dest_item_code, string $up
         chmod($dest_dir, 0775);
     }
 
-    $filename         = basename($src_server_path);
-    $dest_server_path = $dest_dir . $filename;
+    $basename = basename($src_server_path);
+    // If a file with the same name already exists in the destination, generate a unique name
+    if (file_exists($dest_dir . $basename)) {
+        $ext      = pathinfo($basename, PATHINFO_EXTENSION);
+        $basename = bin2hex(random_bytes(8)) . ($ext !== '' ? '.' . $ext : '');
+    }
+    $dest_server_path = $dest_dir . $basename;
     if (!copy($src_server_path, $dest_server_path)) {
         return null;
     }
 
-    return BASE_PATH . '/uploads/' . $upload_subdir . '/' . $dest_item_code . '/' . $filename;
+    return BASE_PATH . '/uploads/' . $upload_subdir . '/' . $dest_item_code . '/' . $basename;
 }
 
 $errors      = [];
