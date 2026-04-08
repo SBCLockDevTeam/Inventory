@@ -4,10 +4,9 @@
  *
  * Presents two options:
  *  1. Clone structure only — new item gets the same field definitions but blank values
- *  2. Clone structure + data — new item gets the same field definitions AND copied scalar values
- *
- * Photos, documents, and signatures are NOT cloned (they are physical files and
- * would need separate handling; users can upload new ones).
+ *  2. Clone structure + data — new item gets the same field definitions AND copied values,
+ *     including scalar values (text/textarea/number/date/checkbox) as well as photos,
+ *     documents, and signatures (physical files are copied to the new item's upload folder).
  *
  * Supports cloning multiple copies at once via the clone_count field.
  * Names are auto-incremented: if the source name ends in a number that number is
@@ -75,6 +74,56 @@ function cloneNextUniqueName(string $base, int &$num): string {
         $candidate = $base . $num;
     }
     return $candidate;
+}
+
+/**
+ * Copy a single upload file from a source item's folder to a destination item's folder.
+ *
+ * The file_path stored in the DB is a URL-relative path such as
+ * BASE_PATH . '/uploads/photos/{item_code}/{filename}'.
+ * We derive the server filesystem path, copy the file, then return the new URL-relative path.
+ *
+ * @param  string $src_file_path  URL-relative path stored in the DB (must start with BASE_PATH)
+ * @param  string $dest_item_code Public code of the destination item
+ * @param  string $upload_subdir  Must be one of: 'photos', 'documents', 'signatures'
+ * @return string|null            New URL-relative path, or null if the copy failed
+ */
+function cloneCopyFile(string $src_file_path, string $dest_item_code, string $upload_subdir): ?string {
+    // Whitelist the upload subdirectory to prevent path traversal
+    if (!in_array($upload_subdir, ['photos', 'documents', 'signatures'], true)) {
+        return null;
+    }
+
+    // Ensure the stored path originates from the expected BASE_PATH prefix
+    if (strpos($src_file_path, BASE_PATH . '/') !== 0) {
+        return null;
+    }
+
+    $src_server_path = SERVER_ROOT . substr($src_file_path, strlen(BASE_PATH));
+    if (!file_exists($src_server_path)) {
+        return null;
+    }
+
+    $dest_dir = SERVER_ROOT . '/uploads/' . $upload_subdir . '/' . $dest_item_code . '/';
+    if (!is_dir($dest_dir)) {
+        if (!mkdir($dest_dir, 0775, true)) {
+            return null;
+        }
+        chmod($dest_dir, 0775);
+    }
+
+    $basename = basename($src_server_path);
+    // If a file with the same name already exists in the destination, generate a unique name
+    if (file_exists($dest_dir . $basename)) {
+        $ext      = pathinfo($basename, PATHINFO_EXTENSION);
+        $basename = bin2hex(random_bytes(8)) . ($ext !== '' ? '.' . $ext : '');
+    }
+    $dest_server_path = $dest_dir . $basename;
+    if (!copy($src_server_path, $dest_server_path)) {
+        return null;
+    }
+
+    return BASE_PATH . '/uploads/' . $upload_subdir . '/' . $dest_item_code . '/' . $basename;
 }
 
 $errors      = [];
@@ -176,9 +225,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         DatabaseHelper::beginTransaction();
         try {
-            // Pre-fetch scalar values once (used when clone_data = 1)
+            // Pre-fetch field values once (used when clone_data = 1)
             $source_fields  = FieldHelper::getFields($source_id);
             $source_scalars = $clone_data ? FieldHelper::getScalarValues($source_id) : [];
+            $source_photos  = $clone_data ? FieldHelper::getAllPhotos($source_id) : [];
+            $source_docs    = $clone_data ? FieldHelper::getAllDocuments($source_id) : [];
+            $source_sigs    = $clone_data ? FieldHelper::getAllSignatures($source_id) : [];
 
             $user_label = $active_user ? $active_user['name'] : null;
 
@@ -232,25 +284,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]
                     );
 
-                    // If cloning data, copy scalar values for text/textarea/number/date/checkbox fields
-                    if ($clone_data && in_array($sf['field_type'], ['text','textarea','number','date','checkbox'])) {
+                    // If cloning data, copy all field values (scalar, photo, document, signature)
+                    if ($clone_data) {
                         $new_field_id = (int)DatabaseHelper::getLastInsertId();
                         if ($new_field_id > 0) {
-                            $src_val = $source_scalars[$sf['id']] ?? null;
-                            if ($src_val) {
-                                DatabaseHelper::execute(
-                                    "INSERT INTO item_field_values
-                                         (item_public_code, field_id, value_text, value_number, value_date, value_bool)
-                                     VALUES (?, ?, ?, ?, ?, ?)",
-                                    [
-                                        $item_code,
-                                        $new_field_id,
-                                        $src_val['value_text'],
-                                        $src_val['value_number'],
-                                        $src_val['value_date'],
-                                        $src_val['value_bool'],
-                                    ]
-                                );
+                            if (in_array($sf['field_type'], ['text','textarea','number','date','checkbox'])) {
+                                $src_val = $source_scalars[$sf['id']] ?? null;
+                                if ($src_val) {
+                                    DatabaseHelper::execute(
+                                        "INSERT INTO item_field_values
+                                             (item_public_code, field_id, value_text, value_number, value_date, value_bool)
+                                         VALUES (?, ?, ?, ?, ?, ?)",
+                                        [
+                                            $item_code,
+                                            $new_field_id,
+                                            $src_val['value_text'],
+                                            $src_val['value_number'],
+                                            $src_val['value_date'],
+                                            $src_val['value_bool'],
+                                        ]
+                                    );
+                                }
+                            } elseif ($sf['field_type'] === 'photo') {
+                                foreach ($source_photos[$sf['id']] ?? [] as $photo) {
+                                    $new_path = cloneCopyFile($photo['file_path'], $item_code, 'photos');
+                                    if ($new_path !== null) {
+                                        DatabaseHelper::execute(
+                                            "INSERT INTO item_images (item_public_code, field_id, file_path, caption, sort_order)
+                                             VALUES (?, ?, ?, ?, ?)",
+                                            [$item_code, $new_field_id, $new_path, $photo['caption'], $photo['sort_order']]
+                                        );
+                                    }
+                                }
+                            } elseif ($sf['field_type'] === 'document') {
+                                foreach ($source_docs[$sf['id']] ?? [] as $doc) {
+                                    $new_path = cloneCopyFile($doc['file_path'], $item_code, 'documents');
+                                    if ($new_path !== null) {
+                                        DatabaseHelper::execute(
+                                            "INSERT INTO item_documents (item_public_code, field_id, file_path, original_filename, mime_type)
+                                             VALUES (?, ?, ?, ?, ?)",
+                                            [$item_code, $new_field_id, $new_path, $doc['original_filename'], $doc['mime_type']]
+                                        );
+                                    }
+                                }
+                            } elseif ($sf['field_type'] === 'signature') {
+                                foreach ($source_sigs[$sf['id']] ?? [] as $sig) {
+                                    $new_path = cloneCopyFile($sig['signature_image_path'], $item_code, 'signatures');
+                                    if ($new_path !== null) {
+                                        DatabaseHelper::execute(
+                                            "INSERT INTO item_signatures (item_public_code, field_id, signature_image_path, printed_name)
+                                             VALUES (?, ?, ?, ?)",
+                                            [$item_code, $new_field_id, $new_path, $sig['printed_name']]
+                                        );
+                                    }
+                                }
                             }
                         }
                     }
@@ -309,9 +396,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $code_map[$desc_code] = $new_desc_code;
 
-                        // Clone field definitions (and optionally scalar values)
+                        // Clone field definitions (and optionally all field values)
                         $desc_fields  = FieldHelper::getFields($desc_code);
                         $desc_scalars = $clone_data ? FieldHelper::getScalarValues($desc_code) : [];
+                        $desc_photos  = $clone_data ? FieldHelper::getAllPhotos($desc_code) : [];
+                        $desc_docs    = $clone_data ? FieldHelper::getAllDocuments($desc_code) : [];
+                        $desc_sigs    = $clone_data ? FieldHelper::getAllSignatures($desc_code) : [];
 
                         foreach ($desc_fields as $df) {
                             DatabaseHelper::execute(
@@ -333,24 +423,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 ]
                             );
 
-                            if ($clone_data && in_array($df['field_type'], ['text','textarea','number','date','checkbox'])) {
+                            if ($clone_data) {
                                 $new_df_id = (int)DatabaseHelper::getLastInsertId();
                                 if ($new_df_id > 0) {
-                                    $src_val = $desc_scalars[$df['id']] ?? null;
-                                    if ($src_val) {
-                                        DatabaseHelper::execute(
-                                            "INSERT INTO item_field_values
-                                                 (item_public_code, field_id, value_text, value_number, value_date, value_bool)
-                                             VALUES (?, ?, ?, ?, ?, ?)",
-                                            [
-                                                $new_desc_code,
-                                                $new_df_id,
-                                                $src_val['value_text'],
-                                                $src_val['value_number'],
-                                                $src_val['value_date'],
-                                                $src_val['value_bool'],
-                                            ]
-                                        );
+                                    if (in_array($df['field_type'], ['text','textarea','number','date','checkbox'])) {
+                                        $src_val = $desc_scalars[$df['id']] ?? null;
+                                        if ($src_val) {
+                                            DatabaseHelper::execute(
+                                                "INSERT INTO item_field_values
+                                                     (item_public_code, field_id, value_text, value_number, value_date, value_bool)
+                                                 VALUES (?, ?, ?, ?, ?, ?)",
+                                                [
+                                                    $new_desc_code,
+                                                    $new_df_id,
+                                                    $src_val['value_text'],
+                                                    $src_val['value_number'],
+                                                    $src_val['value_date'],
+                                                    $src_val['value_bool'],
+                                                ]
+                                            );
+                                        }
+                                    } elseif ($df['field_type'] === 'photo') {
+                                        foreach ($desc_photos[$df['id']] ?? [] as $photo) {
+                                            $new_path = cloneCopyFile($photo['file_path'], $new_desc_code, 'photos');
+                                            if ($new_path !== null) {
+                                                DatabaseHelper::execute(
+                                                    "INSERT INTO item_images (item_public_code, field_id, file_path, caption, sort_order)
+                                                     VALUES (?, ?, ?, ?, ?)",
+                                                    [$new_desc_code, $new_df_id, $new_path, $photo['caption'], $photo['sort_order']]
+                                                );
+                                            }
+                                        }
+                                    } elseif ($df['field_type'] === 'document') {
+                                        foreach ($desc_docs[$df['id']] ?? [] as $doc) {
+                                            $new_path = cloneCopyFile($doc['file_path'], $new_desc_code, 'documents');
+                                            if ($new_path !== null) {
+                                                DatabaseHelper::execute(
+                                                    "INSERT INTO item_documents (item_public_code, field_id, file_path, original_filename, mime_type)
+                                                     VALUES (?, ?, ?, ?, ?)",
+                                                    [$new_desc_code, $new_df_id, $new_path, $doc['original_filename'], $doc['mime_type']]
+                                                );
+                                            }
+                                        }
+                                    } elseif ($df['field_type'] === 'signature') {
+                                        foreach ($desc_sigs[$df['id']] ?? [] as $sig) {
+                                            $new_path = cloneCopyFile($sig['signature_image_path'], $new_desc_code, 'signatures');
+                                            if ($new_path !== null) {
+                                                DatabaseHelper::execute(
+                                                    "INSERT INTO item_signatures (item_public_code, field_id, signature_image_path, printed_name)
+                                                     VALUES (?, ?, ?, ?)",
+                                                    [$new_desc_code, $new_df_id, $new_path, $sig['printed_name']]
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                             }
