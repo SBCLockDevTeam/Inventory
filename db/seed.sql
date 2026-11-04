@@ -36,3 +36,33 @@ INSERT INTO items (public_code, name, description, is_container, location_item_i
 ('e5f6a7b8c9', 'Item 2', 'Sample item 2 in Warehouse A', 0, 'a1b2c3d4e5', (SELECT id FROM clients WHERE name = 'Client A')),
 ('f6a7b8c9d0', 'Item 3', 'Sample item 3 in Warehouse B', 0, 'b2c3d4e5f6', (SELECT id FROM clients WHERE name = 'Client B')),
 ('a7b8c9d0e1', 'Item 4', 'Sample item 4 in Warehouse C', 0, 'c3d4e5f6a7', (SELECT id FROM clients WHERE name = 'Client C'));
+
+-- Facility condition review data-driven categories and inspection items
+INSERT INTO facility_review_categories (name, description, sort_order) VALUES
+('Building Envelope', 'Exterior wall, roof, and window conditions', 10),
+('Life Safety', 'Fire, alarm, and emergency system checks', 20),
+('Mechanical Systems', 'HVAC, plumbing, and equipment system status', 30);
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'ENV-001', 'Roof Condition', 'Inspect for leaks, flashing, and drainage issues', 'fair', 10, 1
+FROM facility_review_categories WHERE name = 'Building Envelope';
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'ENV-002', 'Exterior Walls', 'Check cracks, moisture intrusion, and finish condition', 'good', 20, 1
+FROM facility_review_categories WHERE name = 'Building Envelope';
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'LIF-001', 'Fire Alarm System', 'Verify panel status and device coverage', 'good', 10, 1
+FROM facility_review_categories WHERE name = 'Life Safety';
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'LIF-002', 'Emergency Lighting', 'Check battery backup and illumination levels', 'fair', 20, 1
+FROM facility_review_categories WHERE name = 'Life Safety';
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'MEC-001', 'HVAC Units', 'Review airflow, filters, and operating condition', 'poor', 10, 1
+FROM facility_review_categories WHERE name = 'Mechanical Systems';
+
+INSERT INTO facility_review_items (category_id, code, name, description, default_severity, sort_order, is_active)
+SELECT id, 'MEC-002', 'Domestic Water', 'Check pressure, leaks, and temperature regulation', 'fair', 20, 1
+FROM facility_review_categories WHERE name = 'Mechanical Systems';

@@ -13,6 +13,16 @@ $_menu_is_admin = ClientHelper::isActiveUserAdmin();
                 <li><a href="<?php echo BASE_PATH; ?>/items/">View Items</a></li>
             </ul>
         </li>
+        <li><a href="<?php echo BASE_PATH; ?>/facility_review/">Facility Reviews</a>
+            <ul class="submenu">
+                <li><a href="<?php echo BASE_PATH; ?>/facility_review/">New Review</a></li>
+                <?php if ($_menu_is_admin): ?>
+                <li><a href="<?php echo BASE_PATH; ?>/facility_review/admin/categories.php">Review Categories</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/facility_review/admin/items.php">Review Items</a></li>
+                <li><a href="<?php echo BASE_PATH; ?>/facility_review/admin/inspections.php">Review History</a></li>
+                <?php endif; ?>
+            </ul>
+        </li>
         <?php if ($_menu_is_admin): ?>
         <li><a href="#">Admin</a>
             <ul class="submenu">
